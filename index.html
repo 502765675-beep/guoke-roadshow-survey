@@ -365,6 +365,12 @@ document.getElementById('surveyForm').addEventListener('submit', function(e) {
     return;
   }
 
+  // 每人限填一次
+  if (getSubmissions().some(function(s) { return s.name === name; })) {
+    showToast('「' + name + '」已提交过反馈，每人仅限填写一次', 'error');
+    return;
+  }
+
   const data = collectFormData(name);
   saveSubmission(data);
   showToast('✓ 提交成功！感谢 ' + name + ' 的宝贵意见', 'success');
