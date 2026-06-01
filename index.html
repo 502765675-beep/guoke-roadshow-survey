@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>国科创演 VOL 1 —— 投资人意见反馈表</title>
+<style>
+  @media print {
+    .no-print, .data-panel, .btn-group { display: none !important; }
+    .project-section { page-break-inside: avoid; }
+  }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; max-width: 860px; margin: 0 auto; padding: 20px; color: #333; }
+  .header { text-align: center; margin-bottom: 30px; }
+  .header h1 { color: #1a478a; font-size: 22px; margin-bottom: 5px; }
+  .header .subtitle { color: #666; font-size: 13px; }
+  .section-title { color: #1a478a; font-size: 16px; font-weight: bold; border-bottom: 2px solid #1a478a; padding-bottom: 5px; margin: 30px 0 15px; }
+  .basic-info { margin: 10px 0; }
+  .basic-info label { font-size: 14px; }
+  .basic-info input[type="text"] { border: none; border-bottom: 1px solid #999; padding: 4px 8px; font-size: 14px; width: 200px; outline: none; }
+  .basic-info .hint { font-size: 11px; color: #999; margin-top: 4px; }
+  .rating-note { font-size: 12px; color: #888; margin-bottom: 20px; }
+  .project-section { border: 1px solid #e0e0e0; border-radius: 6px; padding: 18px; margin-bottom: 22px; background: #fafafa; }
+  .project-section h3 { color: #2b579a; font-size: 15px; margin: 0 0 8px 0; }
+  .project-section .desc { font-size: 12px; color: #666; margin-bottom: 14px; line-height: 1.6; }
+  .score-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+  .score-table th { background: #1a478a; color: #fff; padding: 8px 6px; font-size: 12px; font-weight: normal; text-align: center; }
+  .score-table th:first-child { text-align: left; padding-left: 10px; }
+  .score-table td { padding: 7px 6px; text-align: center; border-bottom: 1px solid #e0e0e0; font-size: 12px; }
+  .score-table td:first-child { text-align: left; padding-left: 10px; font-size: 12px; }
+  .score-table input[type="radio"] { cursor: pointer; }
+  .invest-will { font-size: 13px; margin: 8px 0; }
+  .invest-will label { margin-right: 20px; cursor: pointer; }
+  .comment-area { margin-top: 8px; }
+  .comment-area label { font-size: 13px; display: block; margin-bottom: 4px; }
+  .comment-area textarea { width: 100%; height: 40px; border: 1px solid #ddd; border-radius: 3px; resize: vertical; font-size: 13px; padding: 6px; box-sizing: border-box; }
+  .overall-section { margin-top: 10px; }
+  .overall-section .q { font-size: 14px; font-weight: bold; margin: 14px 0 6px; }
+  .overall-section .checkbox-group { font-size: 13px; line-height: 2; padding-left: 16px; }
+  .overall-section .checkbox-group label { margin-right: 16px; cursor: pointer; }
+  .overall-section textarea { width: 100%; height: 50px; border: 1px solid #ddd; border-radius: 3px; resize: vertical; font-size: 13px; padding: 6px; box-sizing: border-box; margin-bottom: 6px; }
+  .overall-section input[type="text"] { border: none; border-bottom: 1px solid #999; padding: 4px 8px; font-size: 13px; width: 220px; outline: none; margin-left: 6px; }
+  .footer { text-align: center; font-size: 11px; color: #999; margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; }
+
+  /* Buttons */
+  .btn-group { text-align: center; margin: 25px 0; }
+  .btn-group button { padding: 10px 30px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; margin: 0 8px; transition: opacity 0.2s; }
+  .btn-submit { background: #1a478a; color: #fff; }
+  .btn-reset { background: #f0f0f0; color: #333; }
+  .btn-submit:hover { background: #153b73; }
+  .btn-reset:hover { background: #ddd; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Toast */
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 14px 28px; border-radius: 6px; color: #fff; font-size: 14px; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .toast.success { background: #27ae60; }
+  .toast.error { background: #e74c3c; }
+  .toast.warn { background: #f39c12; }
+
+  /* Data panel */
+  .data-panel { border: 2px solid #1a478a; border-radius: 8px; margin-top: 30px; overflow: hidden; }
+  .data-panel-header { background: #1a478a; color: #fff; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .data-panel-header h3 { margin: 0; font-size: 15px; }
+  .data-panel-header .toggle-icon { font-size: 18px; transition: transform 0.3s; }
+  .data-panel-header.open .toggle-icon { transform: rotate(180deg); }
+  .data-panel-body { display: none; padding: 18px; background: #f8f9fb; max-height: 500px; overflow: auto; }
+  .data-panel-body.open { display: block; }
+  .data-actions { margin-bottom: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .data-actions button { padding: 7px 16px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background: #fff; }
+  .data-actions button:hover { background: #f0f0f0; }
+  .data-actions .btn-export { background: #27ae60; color: #fff; border-color: #27ae60; }
+  .data-actions .btn-export:hover { background: #219a52; }
+  .data-actions .btn-danger { background: #e74c3c; color: #fff; border-color: #e74c3c; }
+  .data-actions .btn-danger:hover { background: #c0392b; }
+  .data-table-wrap { overflow-x: auto; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 1200px; }
+  .data-table th, .data-table td { border: 1px solid #ddd; padding: 5px 6px; text-align: center; white-space: nowrap; }
+  .data-table th { background: #eef2f7; position: sticky; top: 0; z-index: 1; }
+  .data-table td.comment-cell { max-width: 120px; white-space: normal; text-align: left; font-size: 10px; }
+  .no-data { text-align: center; color: #999; padding: 30px; }
+  .submission-count { font-size: 12px; color: #666; margin-bottom: 6px; }
+
+  /* Required field indicator */
+  .required { color: #e74c3c; }
+  .field-error { border-color: #e74c3c !important; background: #fff5f5; }
+
+  /* Admin modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center; }
+  .modal-overlay.show { display: flex; }
+  .modal-box { background: #fff; border-radius: 8px; padding: 30px; width: 360px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+  .modal-box h3 { margin: 0 0 20px; color: #1a478a; font-size: 16px; }
+  .modal-box input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; margin-bottom: 16px; outline: none; }
+  .modal-box input[type="password"]:focus { border-color: #1a478a; }
+  .modal-box .modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-box .modal-btns button { padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  .modal-box .btn-login { background: #1a478a; color: #fff; }
+  .modal-box .btn-login:hover { background: #153b73; }
+  .modal-box .btn-cancel { background: #f0f0f0; color: #333; }
+  .modal-box .btn-cancel:hover { background: #ddd; }
+  .modal-box .login-error { color: #e74c3c; font-size: 12px; margin-bottom: 10px; display: none; }
+
+  /* Admin toolbar */
+  .admin-bar { display: none; background: #1a478a; color: #fff; padding: 8px 18px; border-radius: 6px; margin-bottom: 15px; justify-content: space-between; align-items: center; font-size: 13px; }
+  .admin-bar.show { display: flex; }
+  .admin-bar .btn-logout { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 5px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .admin-bar .btn-logout:hover { background: rgba(255,255,255,0.35); }
+
+  /* Admin entry link in footer */
+  .admin-entry { text-align: center; margin-top: 10px; }
+  .admin-entry a { color: #bbb; font-size: 11px; text-decoration: none; cursor: pointer; }
+  .admin-entry a:hover { color: #888; }
+
+  /* Data panel hidden by default */
+  .data-panel { display: none; }
+  .data-panel.show { display: block; }
+
+  /* Mobile responsive */
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .header h1 { font-size: 18px; }
+    .section-title { font-size: 14px; }
+    .project-section { padding: 12px; }
+    .project-section h3 { font-size: 13px; }
+    .score-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .score-table { min-width: 420px; }
+    .score-table th, .score-table td { padding: 5px 3px; font-size: 10px; }
+    .score-table th:first-child, .score-table td:first-child { font-size: 10px; padding-left: 4px; }
+    .invest-will { font-size: 12px; }
+    .invest-will label { display: block; margin-bottom: 4px; }
+    .comment-area textarea { font-size: 16px; } /* prevent iOS zoom */
+    .overall-section textarea { font-size: 16px; }
+    .basic-info input[type="text"] { font-size: 16px; width: 160px; }
+    .btn-group button { padding: 12px 24px; font-size: 15px; width: 100%; margin: 6px 0; }
+    .btn-group { display: flex; flex-direction: column; gap: 6px; }
+    .overall-section input[type="text"] { font-size: 16px; width: 160px; }
+    .data-panel-header h3 { font-size: 13px; }
+    .data-actions { flex-direction: column; }
+    .data-actions button { width: 100%; }
+    .modal-box { width: 90%; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>国科创演 VOL 1 —— 投资人意见反馈表</h1>
+  <p class="subtitle">感谢您拨冗参与本次路演活动。为更好地促进项目与资本的精准对接，诚邀您对以下项目提出宝贵意见。</p>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- Admin login modal -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal-box">
+    <h3>管理员登录</h3>
+    <p class="login-error" id="loginError">密码错误，请重试</p>
+    <input type="password" id="adminPassword" placeholder="请输入管理密码" onkeydown="if(event.key==='Enter')verifyAdmin()">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeAdminModal()">取消</button>
+      <button class="btn-login" onclick="verifyAdmin()">登录</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 表单区 ==================== -->
+<form id="surveyForm">
+<!-- 一、基本信息 -->
+<div class="section-title">一、基本信息</div>
+<div class="basic-info">
+  <label>姓名：<span class="required">*</span> <input type="text" id="investorName" name="name" placeholder="请输入您的姓名" required></label>
+  <p class="hint">（您的个人信息仅用于后续项目对接联络，不会对外公开。）</p>
+</div>
+
+<!-- 二、项目评价 -->
+<div class="section-title">二、项目评价</div>
+<p class="rating-note">评分说明：1分=不认可 &nbsp; 2分=较不认可 &nbsp; 3分=一般 &nbsp; 4分=较认可 &nbsp; 5分=非常认可</p>
+
+<div id="projectsContainer"></div>
+
+<!-- 三、综合反馈 -->
+<div class="section-title">三、综合反馈</div>
+
+<div class="overall-section">
+  <p class="q">1. 您最看好的项目是（可多选）：</p>
+  <div class="checkbox-group" id="favCheckboxes"></div>
+
+  <p class="q">2. 您是否有意向与具体项目进一步深入对接？</p>
+  <div class="checkbox-group">
+    <label><input type="radio" name="follow" value="yes"> 是，希望对接的项目编号：<input type="text" id="followProjects" placeholder="如：项目一、项目三"></label><br>
+    <label><input type="radio" name="follow" value="no"> 否</label>
+  </div>
+
+  <p class="q">3. 您对本次路演活动的建议：</p>
+  <textarea id="suggestion" placeholder="可选填..."></textarea>
+
+  <p class="q">4. 您关注的赛道方向（供后续项目推荐参考）：</p>
+  <div class="checkbox-group">
+    <label><input type="checkbox" name="track" value="新材料"> 新材料</label> &nbsp;&nbsp;
+    <label><input type="checkbox" name="track" value="新能源"> 新能源</label> &nbsp;&nbsp;
+    <label><input type="checkbox" name="track" value="半导体"> 半导体</label> &nbsp;&nbsp;
+    <label><input type="checkbox" name="track" value="人工智能"> 人工智能</label> &nbsp;&nbsp;
+    <label><input type="checkbox" name="track" value="生命健康"> 生命健康</label><br>
+    <label><input type="checkbox" name="track" value="生物制造"> 生物制造</label> &nbsp;&nbsp;
+    <label><input type="checkbox" name="track" value="低空经济"> 低空经济</label> &nbsp;&nbsp;
+    <label><input type="checkbox" name="track" value="智能制造"> 智能制造</label> &nbsp;&nbsp;
+    <label><input type="checkbox" name="track" value="other"> 其他：<input type="text" id="trackOther" placeholder="请填写"></label>
+  </div>
+</div>
+
+<div class="btn-group no-print">
+  <button type="button" class="btn-reset" onclick="resetForm()">清空表单</button>
+  <button type="submit" class="btn-submit" id="submitBtn">✓ 提交反馈</button>
+</div>
+</form>
+
+<div class="footer">
+  感谢您的宝贵意见！如有疑问请联系：王先生 18911912781 / 胡先生 13472615060<br>
+  BP发送至邮箱：hugj@iccas.ac.cn
+  <div class="admin-entry"><a onclick="openAdminModal()">管理入口</a></div>
+</div>
+
+<!-- Admin toolbar -->
+<div class="admin-bar no-print" id="adminBar">
+  <span>🔒 管理员模式 — 数据仅您可见</span>
+  <button class="btn-logout" onclick="logoutAdmin()">退出管理</button>
+</div>
+
+<!-- ==================== 数据汇总区（仅管理员可见） ==================== -->
+<div class="data-panel no-print" id="dataPanel">
+  <div class="data-panel-header" id="dataPanelHeader" onclick="toggleDataPanel()">
+    <h3>📊 数据汇总（共 <span id="totalCount">0</span> 份反馈）</h3>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="data-panel-body" id="dataPanelBody">
+    <div class="data-actions">
+      <button class="btn-export" onclick="exportCSV()">📥 导出CSV</button>
+      <button onclick="copyTable()">📋 复制表格</button>
+      <button class="btn-danger" onclick="clearAllData()">🗑 清空数据</button>
+      <button style="background:#1a478a;color:#fff;border-color:#1a478a;" onclick="saveAsNewVolume()">📄 另存为新一期问卷</button>
+    </div>
+    <div id="submissionStats" class="submission-count"></div>
+    <div class="data-table-wrap">
+      <table class="data-table" id="dataTable">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="no-data" id="noData">暂无提交数据，请填写问卷后点击"提交反馈"</div>
+  </div>
+</div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  ★ 项目配置 — 换项目只需修改下面这个数组 ★                ║
+// ║  每个项目: { id: 序号, name: '项目名称', desc: '简介' }     ║
+// ║  支持任意数量项目，界面会自动适配                            ║
+// ╚══════════════════════════════════════════════════════════════╝
+const EVENT_VOLUME = 1; // 第几期活动（影响标题、文件名、存储key）
+
+const projects = [
+  { id: 1, name: '面向医疗CT成像的新一代稀土闪烁陶瓷材料与器件开发',
+    desc: '高端稀土闪烁陶瓷材料，核心产品为医疗CT探测器用闪烁陶瓷模组，掌握纳米粉体合成到器件封装全链条技术，成本较日本东芝方案下降50%以上，已与联影医疗、安科医疗等头部厂商进入联合研发阶段。' },
+  { id: 2, name: '高性能磷基新能源电池新材料项目',
+    desc: '新型磷基负极材料，兼顾高比容量与优异快充/低温性能，兼容锂电与钠电体系，已突破吨级量产工艺并获头部客户数十批次付费订单，覆盖无人机、电动汽车快充、储能等多元场景。' },
+  { id: 3, name: 'AI工艺孪生——全球纤维卷绕产业的范式重构者',
+    desc: '意大利COMOLI联合前阿里AI团队打造一站式卷绕车间方案，AI工艺孪生降低断丝率25-35%，价格仅为进口同类43%，交付周期缩短50%，覆盖L1经典卷绕机到L3交钥匙工厂三级方案。' },
+  { id: 4, name: '9微米生命波段，打造全场景温热理疗产品生态',
+    desc: '基于9μm远红外技术，实现"共振吸收—深层穿透—细胞激活"三重机制的深层理疗，具备材料设计到方案的全链条技术闭环，已开发远红外美容脸罩、电热披肩、眼罩等八大产品，覆盖居家、办公、差旅、户外四大场景。' },
+  { id: 5, name: '量子点红外芯片——重塑百亿级短波红外赛道',
+    desc: '以胶体量子点材料替代昂贵InGaAs半导体研发短波红外探测器芯片，成本降至传统方案1%，性能媲美高端制冷型探测器，兼容CMOS晶圆级量产，已率先完成KK级量产验证，面向工业检测、自动驾驶、消费电子等百亿级市场。' },
+  { id: 6, name: '用"类核聚变"技术，盘活万亿能源资产',
+    desc: '利用低温等离子体技术解决传统能源开采高成本、高污染的行业痛点，主营等离子脉冲油气增产、等离子地下煤气化、等离子裂解制纳米炭黑+氢气三大平台，国内唯一商业化企业，零污染施工。' },
+  { id: 7, name: '碳化硅衬底——高质量成本领先者，赋能第三代半导体大规模应用',
+    desc: '专注第三代半导体SiC衬底材料，核心产品为导电型SiC衬底片，国内少数具备8英寸MOS级衬底产业化能力的企业，应用于新能源汽车、AI数据中心、光伏储能、5G通信等场景，已获Pre-A及A+轮融资。' }
+];
+
+// ==================== 内置工具函数（无需修改） ====================
+const CHINESE_NUMS = '零一二三四五六七八九十';
+function numToChinese(n) {
+  if (n <= 10) return CHINESE_NUMS[n];
+  if (n < 20) return '十' + CHINESE_NUMS[n - 10];
+  if (n < 100) {
+    const tens = Math.floor(n / 10);
+    const ones = n % 10;
+    return CHINESE_NUMS[tens] + '十' + (ones ? CHINESE_NUMS[ones] : '');
+  }
+  return String(n);
+}
+
+const dimensions = ['技术先进性（技术壁垒与创新程度）', '市场前景（市场空间与增长潜力）',
+  '团队实力（创始团队的背景与执行力）', '商业模式（盈利模式清晰度与可持续性）',
+  '竞争优势（与竞品相比的差异化优势）', '投资价值（综合投资吸引力）'];
+
+const shortDimNames = ['技术', '市场', '团队', '模式', '竞争', '投资'];
+
+// ==================== 动态生成界面 ====================
+function buildUI() {
+  // 标题中的期数
+  document.querySelector('.header h1').innerHTML =
+    `国科创演 VOL ${EVENT_VOLUME} —— 投资人意见反馈表`;
+
+  // 项目评分卡片
+  const container = document.getElementById('projectsContainer');
+  container.innerHTML = projects.map(p => {
+    const cn = numToChinese(p.id);
+    return `
+    <div class="project-section">
+      <h3>项目${cn}：${p.name}</h3>
+      <p class="desc"><b>【项目简介】</b>${p.desc}</p>
+      <div class="score-table-wrap">
+      <table class="score-table">
+        <tr><th width="40%">评价维度</th><th>1分</th><th>2分</th><th>3分</th><th>4分</th><th>5分</th></tr>
+        ${dimensions.map((dim, di) => `
+          <tr>
+            <td>${dim}</td>
+            ${[1,2,3,4,5].map(s => `<td><input type="radio" name="p${p.id}_d${di}" value="${s}"></td>`).join('')}
+          </tr>
+        `).join('')}
+      </table>
+      </div>
+      <div class="invest-will">
+        投资意愿：
+        <label><input type="radio" name="p${p.id}_will" value="重点关注，希望对接"> 重点关注，希望对接</label>
+        <label><input type="radio" name="p${p.id}_will" value="保持关注，持续观察"> 保持关注，持续观察</label>
+        <label><input type="radio" name="p${p.id}_will" value="暂不关注"> 暂不关注</label>
+      </div>
+      <div class="comment-area">
+        <label>具体意见/建议：</label>
+        <textarea id="p${p.id}_comment" placeholder="可选填..."></textarea>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 最看好项目 多选列表
+  const favContainer = document.getElementById('favCheckboxes');
+  favContainer.innerHTML = projects.map(p => {
+    const cn = numToChinese(p.id);
+    const shortName = p.name.length > 12 ? p.name.substring(0, 12) + '...' : p.name;
+    return `<label><input type="checkbox" name="fav" value="${p.id}"> 项目${cn}：${shortName}</label><br>`;
+  }).join('');
+}
+buildUI();
+
+// ==================== 表单提交 ====================
+document.getElementById('surveyForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const name = document.getElementById('investorName').value.trim();
+  if (!name) {
+    showToast('请填写姓名后再提交', 'error');
+    document.getElementById('investorName').classList.add('field-error');
+    setTimeout(() => document.getElementById('investorName').classList.remove('field-error'), 2000);
+    return;
+  }
+
+  const data = collectFormData(name);
+  saveSubmission(data);
+  showToast('✓ 提交成功！感谢 ' + name + ' 的宝贵意见', 'success');
+  if (isAdmin) renderDataTable();
+  resetForm(true);
+});
+
+// ==================== 收集表单数据 ====================
+function collectFormData(name) {
+  const data = {
+    name: name,
+    time: new Date().toLocaleString('zh-CN', { hour12: false }),
+    scores: {}, wills: {}, comments: {},
+    fav: [], follow: '', followProjects: '', suggestion: '', tracks: [], trackOther: ''
+  };
+
+  projects.forEach(p => {
+    data.scores[p.id] = {};
+    dimensions.forEach((_, di) => {
+      const radio = document.querySelector(`input[name="p${p.id}_d${di}"]:checked`);
+      data.scores[p.id][di] = radio ? radio.value : '';
+    });
+    const willRadio = document.querySelector(`input[name="p${p.id}_will"]:checked`);
+    data.wills[p.id] = willRadio ? willRadio.value : '';
+    const commentEl = document.getElementById(`p${p.id}_comment`);
+    data.comments[p.id] = commentEl ? commentEl.value.trim() : '';
+  });
+
+  document.querySelectorAll('input[name="fav"]:checked').forEach(cb => data.fav.push(cb.value));
+  const followRadio = document.querySelector('input[name="follow"]:checked');
+  data.follow = followRadio ? followRadio.value : '';
+  data.followProjects = document.getElementById('followProjects').value.trim();
+  data.suggestion = document.getElementById('suggestion').value.trim();
+  document.querySelectorAll('input[name="track"]:checked').forEach(cb => data.tracks.push(cb.value));
+  data.trackOther = document.getElementById('trackOther').value.trim();
+
+  return data;
+}
+
+// ==================== 本地存储 ====================
+const STORAGE_KEY = `guoke_roadshow_v${EVENT_VOLUME}_submissions`;
+
+function getSubmissions() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function saveSubmission(data) {
+  const subs = getSubmissions();
+  subs.push(data);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(subs));
+}
+
+function clearAllSubmissions() {
+  localStorage.removeItem(STORAGE_KEY);
+  renderDataTable();
+  showToast('全部数据已清空', 'warn');
+}
+
+// ==================== 重置表单 ====================
+function resetForm(keepName) {
+  if (!keepName) document.getElementById('investorName').value = '';
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('textarea').forEach(ta => ta.value = '');
+  document.getElementById('investorName').classList.remove('field-error');
+  if (!keepName) document.getElementById('investorName').focus();
+}
+
+// ==================== 渲染数据表 ====================
+function renderDataTable() {
+  const subs = getSubmissions();
+  document.getElementById('totalCount').textContent = subs.length;
+  document.getElementById('submissionStats').textContent =
+    subs.length > 0 ? `最后提交：${subs[subs.length-1].time}` : '';
+
+  const thead = document.querySelector('#dataTable thead');
+  const tbody = document.querySelector('#dataTable tbody');
+  const noData = document.getElementById('noData');
+
+  if (subs.length === 0) {
+    thead.innerHTML = '';  tbody.innerHTML = '';
+    noData.style.display = 'block';
+    document.querySelector('.data-table-wrap').style.display = 'none';
+    return;
+  }
+
+  noData.style.display = 'none';
+  document.querySelector('.data-table-wrap').style.display = 'block';
+
+  let headerHtml = '<tr><th rowspan="2">序号</th><th rowspan="2">姓名</th><th rowspan="2">时间</th>';
+  projects.forEach(p => {
+    headerHtml += `<th colspan="7" style="background:#d5e0f0;">项目${numToChinese(p.id)}</th>`;
+  });
+  headerHtml += '<th rowspan="2">最看好</th><th rowspan="2">对接意向</th><th rowspan="2">对接项目</th><th rowspan="2">活动建议</th><th rowspan="2">关注赛道</th></tr><tr>';
+  projects.forEach(() => { headerHtml += '<th>技术</th><th>市场</th><th>团队</th><th>模式</th><th>竞争</th><th>投资</th><th>意愿</th>'; });
+  headerHtml += '</tr>';
+  thead.innerHTML = headerHtml;
+
+  let bodyHtml = '';
+  subs.forEach((s, idx) => {
+    bodyHtml += `<tr><td>${idx + 1}</td><td>${escHtml(s.name)}</td><td>${escHtml(s.time)}</td>`;
+    projects.forEach(p => {
+      shortDimNames.forEach((_, di) => {
+        const val = (s.scores[p.id] && s.scores[p.id][di]) ? s.scores[p.id][di] : '-';
+        bodyHtml += `<td>${val}</td>`;
+      });
+      bodyHtml += `<td style="font-size:10px;">${escHtml(s.wills[p.id] || '-')}</td>`;
+    });
+    bodyHtml += `
+      <td>${escHtml((s.fav || []).join(', '))}</td>
+      <td>${escHtml(s.follow || '-')}</td>
+      <td>${escHtml(s.followProjects || '-')}</td>
+      <td class="comment-cell">${escHtml(s.suggestion || '-')}</td>
+      <td>${escHtml((s.tracks || []).join(', ') + (s.trackOther ? '; ' + s.trackOther : ''))}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = bodyHtml;
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ==================== 导出CSV ====================
+function exportCSV() {
+  const subs = getSubmissions();
+  if (subs.length === 0) { showToast('暂无数据可导出', 'warn'); return; }
+
+  let csv = '﻿';
+  let headers = ['序号', '姓名', '时间'];
+  projects.forEach(p => {
+    const cn = numToChinese(p.id);
+    headers.push(`P${p.id}-${cn}-技术`, `P${p.id}-${cn}-市场`, `P${p.id}-${cn}-团队`,
+      `P${p.id}-${cn}-模式`, `P${p.id}-${cn}-竞争`, `P${p.id}-${cn}-投资`, `P${p.id}-${cn}-意愿`,
+      `P${p.id}-${cn}-意见`);
+  });
+  headers.push('最看好项目', '对接意向', '对接项目编号', '活动建议', '关注赛道');
+  csv += headers.join(',') + '\n';
+
+  subs.forEach((s, idx) => {
+    let row = [idx + 1, csvCell(s.name), csvCell(s.time)];
+    projects.forEach(p => {
+      shortDimNames.forEach((_, di) => {
+        row.push((s.scores[p.id] && s.scores[p.id][di]) ? s.scores[p.id][di] : '');
+      });
+      row.push(csvCell(s.wills[p.id] || ''));
+      row.push(csvCell(s.comments[p.id] || ''));
+    });
+    row.push(csvCell((s.fav || []).join('; ')));
+    row.push(csvCell(s.follow || ''));
+    row.push(csvCell(s.followProjects || ''));
+    row.push(csvCell(s.suggestion || ''));
+    row.push(csvCell((s.tracks || []).join('; ') + (s.trackOther ? '; ' + s.trackOther : '')));
+    csv += row.join(',') + '\n';
+  });
+
+  downloadFile(`国科创演VOL${EVENT_VOLUME}_投资人反馈汇总.csv`, csv);
+  showToast('CSV文件已下载，可用Excel直接打开', 'success');
+}
+
+function csvCell(val) {
+  if (val === null || val === undefined) return '';
+  const s = String(val);
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function downloadFile(filename, content) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ==================== 复制表格 ====================
+function copyTable() {
+  const subs = getSubmissions();
+  if (subs.length === 0) { showToast('暂无数据可复制', 'warn'); return; }
+
+  let text = '';
+  subs.forEach((s, idx) => {
+    text += `[${idx+1}] ${s.name} (${s.time})\n`;
+    projects.forEach(p => {
+      const cn = numToChinese(p.id);
+      const scores = shortDimNames.map((dn, di) => {
+        return dn + ':' + ((s.scores[p.id] && s.scores[p.id][di]) ? s.scores[p.id][di] : '-');
+      }).join(' ');
+      text += `  项目${cn}：${scores} | 意愿：${s.wills[p.id] || '-'}`;
+      if (s.comments[p.id]) text += ` | 意见：${s.comments[p.id]}`;
+      text += '\n';
+    });
+    text += `  最看好：${(s.fav||[]).join(',') || '-'} | 对接：${s.follow||'-'} ${s.followProjects||''}\n`;
+    text += `  建议：${s.suggestion||'-'} | 赛道：${(s.tracks||[]).join(',')}${s.trackOther?';'+s.trackOther:''}\n\n`;
+  });
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('表格内容已复制到剪贴板', 'success');
+  }).catch(() => {
+    showToast('复制失败，请手动选择复制', 'error');
+  });
+}
+
+// ==================== 数据面板切换 ====================
+function toggleDataPanel() {
+  const body = document.getElementById('dataPanelBody');
+  const header = document.getElementById('dataPanelHeader');
+  body.classList.toggle('open');
+  header.classList.toggle('open');
+}
+
+// ==================== 清空数据 ====================
+function clearAllData() {
+  const subs = getSubmissions();
+  if (subs.length === 0) { showToast('没有数据需要清空', 'warn'); return; }
+  if (confirm(`当前共有 ${subs.length} 份反馈数据，确定要全部清空吗？\n\n建议先导出CSV备份。此操作不可恢复！`)) {
+    clearAllSubmissions();
+  }
+}
+
+// ==================== Toast ====================
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = 'toast'; }, 2500);
+}
+
+// ==================== 另存为新一期 ====================
+function saveAsNewVolume() {
+  const newVol = parseInt(prompt(`当前是第 ${EVENT_VOLUME} 期。请输入新一期编号（如 2、3、4...）：`, EVENT_VOLUME + 1));
+  if (!newVol || newVol <= 0 || isNaN(newVol)) return;
+  if (newVol === EVENT_VOLUME) { showToast('新期数不能与当前相同', 'warn'); return; }
+
+  // 读取当前HTML源码，替换期数
+  let html = document.documentElement.outerHTML;
+  // 替换EVENT_VOLUME变量
+  html = html.replace(/const EVENT_VOLUME = \d+/, `const EVENT_VOLUME = ${newVol}`);
+  // 替换标题中的期数（可能出现多次）
+  html = html.replace(/国科创演 VOL \d+/g, `国科创演 VOL ${newVol}`);
+  // 替换页面title
+  html = html.replace(/<title>国科创演 VOL \d+/, `<title>国科创演 VOL ${newVol}`);
+
+  // 添加重置提示注释到projects数组上方
+  html = html.replace(
+    /(\/\/ ║  ★ 项目配置 — 换项目只需修改下面这个数组)/,
+    `$1\n// ║  ★ 请替换为第${newVol}期的项目列表`
+  );
+
+  const filename = `国科创演VOL${newVol}_投资人意见反馈表.html`;
+  const blob = new Blob(['<!DOCTYPE html>\n' + html.replace(/^<!DOCTYPE html>\s*/i, '')], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+
+  showToast(`第 ${newVol} 期问卷已生成：${filename}，请修改项目列表后使用`, 'success');
+}
+
+// ==================== 管理员认证 ====================
+const ADMIN_PASSWORD = 'guoke2026'; // 可自行修改密码
+
+let isAdmin = false;
+
+function openAdminModal() {
+  document.getElementById('adminModal').classList.add('show');
+  document.getElementById('adminPassword').value = '';
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('adminPassword').focus();
+}
+
+function closeAdminModal() {
+  document.getElementById('adminModal').classList.remove('show');
+}
+
+function verifyAdmin() {
+  const pwd = document.getElementById('adminPassword').value;
+  if (pwd === ADMIN_PASSWORD) {
+    isAdmin = true;
+    document.getElementById('adminModal').classList.remove('show');
+    document.getElementById('adminBar').classList.add('show');
+    document.getElementById('dataPanel').classList.add('show');
+    renderDataTable();
+    document.getElementById('dataPanelBody').classList.add('open');
+    document.getElementById('dataPanelHeader').classList.add('open');
+    showToast('已进入管理员模式', 'success');
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('adminPassword').focus();
+  }
+}
+
+function logoutAdmin() {
+  isAdmin = false;
+  document.getElementById('adminBar').classList.remove('show');
+  document.getElementById('dataPanel').classList.remove('show');
+  showToast('已退出管理员模式', 'warn');
+}
+
+// ==================== 初始化 ====================
+document.getElementById('dataPanel').classList.remove('show');
+document.getElementById('adminBar').classList.remove('show');
+</script>
+
+</body>
+</html>
