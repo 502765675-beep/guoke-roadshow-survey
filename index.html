@@ -145,7 +145,6 @@
     .modal-box { width: 90%; padding: 20px; }
   }
 </style>
-<script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -673,27 +672,27 @@ function logoutAdmin() {
 document.getElementById('dataPanel').classList.remove('show');
 document.getElementById('adminBar').classList.remove('show');
 
-// 二维码生成：部署后自动显示当前页面URL的二维码
+// 二维码生成：使用QR Server API，纯图片无需外部JS库
 (function initQR() {
   var url = window.location.href;
-  var isLocal = url.startsWith('file://');
-  if (isLocal) {
-    document.getElementById('qrHint').textContent = '部署到 Gitee Pages 后将自动显示二维码';
+  var qrDiv = document.getElementById('qrCode');
+  var hint = document.getElementById('qrHint');
+  if (url.startsWith('file://')) {
+    hint.textContent = '部署到 GitHub Pages 后将自动显示二维码';
     return;
   }
-  try {
-    new QRCode(document.getElementById('qrCode'), {
-      text: url,
-      width: 160,
-      height: 160,
-      colorDark: '#1a478a',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-    document.getElementById('qrHint').textContent = '微信扫一扫或长按识别二维码';
-  } catch(e) {
-    document.getElementById('qrHint').textContent = '二维码加载失败，请直接访问链接';
-  }
+  var qrImg = document.createElement('img');
+  qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(url);
+  qrImg.width = 180;
+  qrImg.height = 180;
+  qrImg.alt = '扫码填写问卷';
+  qrImg.onerror = function() {
+    hint.textContent = '二维码加载失败，请直接访问链接：' + url;
+  };
+  qrImg.onload = function() {
+    hint.textContent = '微信扫一扫或长按识别二维码';
+  };
+  qrDiv.appendChild(qrImg);
 })();
 </script>
 
