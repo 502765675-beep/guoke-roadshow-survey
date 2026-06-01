@@ -180,8 +180,8 @@
 <div class="section-title">一、基本信息</div>
 <div class="basic-info">
   <label>姓名：<span class="required">*</span> <input type="text" id="investorName" name="name" placeholder="请输入您的姓名" required></label><br><br>
-  <label>联系方式：<input type="text" id="investorContact" placeholder="手机号或微信（选填）"></label><br><br>
-  <label>所在机构/单位：<input type="text" id="investorOrg" placeholder="请输入机构名称（选填）"></label>
+  <label>联系方式：<span class="required">*</span> <input type="text" id="investorContact" placeholder="手机号或微信（必填）" required></label><br><br>
+  <label>所在机构/单位：<span class="required">*</span> <input type="text" id="investorOrg" placeholder="请输入机构名称（必填）" required></label>
   <p class="hint">（您的个人信息仅用于后续项目对接联络，不会对外公开。）</p>
 </div>
 
@@ -367,6 +367,21 @@ document.getElementById('surveyForm').addEventListener('submit', function(e) {
     return;
   }
 
+  var contact = document.getElementById('investorContact').value.trim();
+  if (!contact) {
+    showToast('请填写联系方式', 'error');
+    document.getElementById('investorContact').classList.add('field-error');
+    setTimeout(function() { document.getElementById('investorContact').classList.remove('field-error'); }, 2000);
+    return;
+  }
+  var org = document.getElementById('investorOrg').value.trim();
+  if (!org) {
+    showToast('请填写所在机构/单位', 'error');
+    document.getElementById('investorOrg').classList.add('field-error');
+    setTimeout(function() { document.getElementById('investorOrg').classList.remove('field-error'); }, 2000);
+    return;
+  }
+
   // 每人限填一次
   if (getSubmissions().some(function(s) { return s.name === name; })) {
     showToast('「' + name + '」已提交过反馈，每人仅限填写一次', 'error');
@@ -445,6 +460,8 @@ function resetForm(keepName) {
   document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
   document.querySelectorAll('textarea').forEach(ta => ta.value = '');
   document.getElementById('investorName').classList.remove('field-error');
+  document.getElementById('investorContact').classList.remove('field-error');
+  document.getElementById('investorOrg').classList.remove('field-error');
   if (!keepName) document.getElementById('investorName').focus();
 }
 
