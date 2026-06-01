@@ -110,6 +110,12 @@
   .admin-entry a { color: #bbb; font-size: 11px; text-decoration: none; cursor: pointer; }
   .admin-entry a:hover { color: #888; }
 
+  /* QR code */
+  .qr-section { text-align: center; margin: 20px 0 0; padding: 16px; background: #f8f9fb; border-radius: 8px; border: 1px dashed #ddd; }
+  .qr-section .qr-title { font-size: 13px; color: #666; margin-bottom: 8px; }
+  .qr-section .qr-hint { font-size: 11px; color: #999; margin-top: 6px; }
+  .qr-section canvas, .qr-section img { display: inline-block !important; }
+
   /* Data panel hidden by default */
   .data-panel { display: none; }
   .data-panel.show { display: block; }
@@ -139,12 +145,18 @@
     .modal-box { width: 90%; padding: 20px; }
   }
 </style>
+<script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
 <div class="header">
   <h1>国科创演 VOL 1 —— 投资人意见反馈表</h1>
   <p class="subtitle">感谢您拨冗参与本次路演活动。为更好地促进项目与资本的精准对接，诚邀您对以下项目提出宝贵意见。</p>
+  <div class="qr-section no-print" id="qrSection">
+    <div class="qr-title">📱 手机扫码填写</div>
+    <div id="qrCode"></div>
+    <div class="qr-hint" id="qrHint">部署后将自动显示二维码</div>
+  </div>
 </div>
 
 <!-- Toast -->
@@ -660,6 +672,29 @@ function logoutAdmin() {
 // ==================== 初始化 ====================
 document.getElementById('dataPanel').classList.remove('show');
 document.getElementById('adminBar').classList.remove('show');
+
+// 二维码生成：部署后自动显示当前页面URL的二维码
+(function initQR() {
+  var url = window.location.href;
+  var isLocal = url.startsWith('file://');
+  if (isLocal) {
+    document.getElementById('qrHint').textContent = '部署到 Gitee Pages 后将自动显示二维码';
+    return;
+  }
+  try {
+    new QRCode(document.getElementById('qrCode'), {
+      text: url,
+      width: 160,
+      height: 160,
+      colorDark: '#1a478a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    document.getElementById('qrHint').textContent = '微信扫一扫或长按识别二维码';
+  } catch(e) {
+    document.getElementById('qrHint').textContent = '二维码加载失败，请直接访问链接';
+  }
+})();
 </script>
 
 </body>
