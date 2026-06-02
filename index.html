@@ -342,6 +342,40 @@ const dimensions = ['技术先进性（技术壁垒与创新程度）', '市场�
 
 const shortDimNames = ['技术', '市场', '团队', '模式', '竞争', '投资'];
 
+// ==================== 调试开关 ====================
+// 设为 true 模拟云端保存失败，用于测试重试和本地降级逻辑
+var _DEBUG_FORCE_CLOUD_FAIL = false;
+// 设为 true 输出详细日志到浏览器控制台
+var _DEBUG_VERBOSE_LOG = true;
+
+// ==================== 日志系统 ====================
+var LOG = [];  // 内存日志，最多保留 200 条
+function log(level, message, detail) {
+  var entry = {
+    time: new Date().toISOString(),
+    level: level,    // 'info' | 'warn' | 'error'
+    msg: message,
+    detail: detail || null
+  };
+  LOG.unshift(entry);
+  if (LOG.length > 200) LOG.length = 200;
+  if (_DEBUG_VERBOSE_LOG) {
+    var fn = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
+    fn('[Q' + EVENT_VOLUME + ']', message, detail || '');
+  }
+}
+function getLogs(level) {
+  if (!level) return LOG.slice();
+  return LOG.filter(function(e) { return e.level === level; });
+}
+// 获取最近 N 条日志的纯文本，方便复制排查
+function getLogText(n) {
+  n = n || 50;
+  return LOG.slice(0, n).map(function(e) {
+    return '[' + e.level.toUpperCase() + '] ' + e.time + ' ' + e.msg + (e.detail ? ' | ' + JSON.stringify(e.detail) : '');
+  }).join('\n');
+}
+
 // ==================== Bmob REST API ====================
 const BM_CLASS = 'Submission';
 
@@ -359,9 +393,12 @@ async function bmApi(path, options) {
   }
   var headers = {
     'X-Bmob-Application-Id': BM_CONFIG.appId,
-    'X-Bmob-REST-API-Key': BM_CONFIG.restApiKey,
-    'Content-Type': 'application/json'
+    'X-Bmob-REST-API-Key': BM_CONFIG.restApiKey
   };
+  // 仅 POST/PUT 请求带 Content-Type，GET/DELETE 不需要
+  if (method === 'POST' || method === 'PUT') {
+    headers['Content-Type'] = 'application/json';
+  }
   var fetchOpts = { method: method, headers: headers };
   if (body) fetchOpts.body = JSON.stringify(body);
 
@@ -373,10 +410,36 @@ async function bmApi(path, options) {
   return data;
 }
 
-// 保存一份提交到云端
+// 带重试的云端保存（指数退避）
+async function cloudSaveWithRetry(submission, maxRetries) {
+  maxRetries = maxRetries || 3;
+  if (_DEBUG_FORCE_CLOUD_FAIL) {
+    log('warn', 'cloudSave 调试模式：强制模拟失败', { name: submission.name });
+    throw new Error('DEBUG: forced cloud save failure');
+  }
+  var lastError = null;
+  for (var attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      var result = await bmApi('/classes/' + BM_CLASS, { method: 'POST', body: submission });
+      log('info', 'cloudSave 成功', { name: submission.name, attempt: attempt, objectId: result.objectId });
+      return result.objectId;
+    } catch(e) {
+      lastError = e;
+      log('warn', 'cloudSave 失败', { name: submission.name, attempt: attempt, maxRetries: maxRetries, error: e.message });
+      if (attempt < maxRetries) {
+        // 指数退避：1s, 2s, 4s
+        var delay = Math.pow(2, attempt - 1) * 1000;
+        await new Promise(function(resolve) { setTimeout(resolve, delay); });
+      }
+    }
+  }
+  log('error', 'cloudSave 全部重试失败', { name: submission.name, retries: maxRetries, error: lastError.message });
+  throw lastError;
+}
+
+// 单次云端保存（无重试，用于静默上传场景）
 async function cloudSave(submission) {
-  var result = await bmApi('/classes/' + BM_CLASS, { method: 'POST', body: submission });
-  return result.objectId;
+  return cloudSaveWithRetry(submission, 1);
 }
 
 // 获取云端所有提交
@@ -384,6 +447,7 @@ async function cloudList() {
   var result = await bmApi('/classes/' + BM_CLASS, {
     params: { order: '-createdAt', limit: 1000 }
   });
+  log('info', 'cloudList 成功', { count: (result.results || []).length });
   return result.results || [];
 }
 
@@ -395,7 +459,6 @@ async function cloudDelete(objectId) {
 // 删除云端全部记录
 async function cloudDeleteAll() {
   var subs = await cloudList();
-  // 批量删除，每次最多 50 条
   var batchSize = 50;
   for (var i = 0; i < subs.length; i += batchSize) {
     var batch = subs.slice(i, i + batchSize);
@@ -415,12 +478,65 @@ async function cloudCheckDuplicate(name) {
   return result.results && result.results.length > 0;
 }
 
+// ==================== 云端→本地 数据映射（公共函数，避免重复代码） ====================
+function mapCloudToLocal(obj) {
+  return {
+    name: obj.name || '',
+    contact: obj.contact || '',
+    org: obj.org || '',
+    time: obj.time || '',
+    scores: obj.scores || {},
+    wills: obj.wills || {},
+    comments: obj.comments || {},
+    fav: obj.fav || [],
+    follow: obj.follow || '',
+    followProjects: obj.followProjects || '',
+    suggestion: obj.suggestion || '',
+    tracks: obj.tracks || [],
+    trackOther: obj.trackOther || '',
+    volume: obj.volume || EVENT_VOLUME,
+    _objectId: obj.objectId,
+    _cloudSynced: true              // ← 标记来源：云端数据
+  };
+}
+
+// 合并云端数据到本地：云端覆盖，但保留本地独有的（未同步成功的）
+// 返回 { merged, localOnly } — localOnly 是本地有但云端没有的条目
+function mergeCloudIntoLocal(cloudObjs) {
+  var cloudSubs = cloudObjs.map(mapCloudToLocal);
+  var localSubs = getSubmissions();
+
+  // 找出本地独有（云端没有同名记录的）
+  var localOnly = [];
+  localSubs.forEach(function(ls) {
+    var inCloud = cloudSubs.some(function(cs) { return cs.name === ls.name; });
+    if (!inCloud) {
+      localOnly.push(ls);
+    }
+  });
+
+  // 用云端数据覆盖本地
+  setSubmissions(cloudSubs);
+
+  // 把本地独有的追加回去
+  localOnly.forEach(function(ls) {
+    var subs = getSubmissions();
+    subs.push(ls);
+    setSubmissions(subs);
+  });
+
+  log('info', 'mergeCloudIntoLocal', { cloud: cloudSubs.length, localOnly: localOnly.length, total: getSubmissions().length });
+  return { merged: cloudSubs, localOnly: localOnly };
+}
+
 // ==================== 本地存储（兜底 + 缓存） ====================
 const STORAGE_KEY = 'guoke_roadshow_v' + EVENT_VOLUME + '_submissions';
+// 失败队列 key：记录哪些提交没成功到达云端
+const FAILED_QUEUE_KEY = STORAGE_KEY + '_failed_queue';
 
 function getSubmissions() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch(e) { return []; }
+  catch(e) { log('error', 'getSubmissions 解析失败', e.message); return []; }
 }
 
 function setSubmissions(subs) {
@@ -431,11 +547,76 @@ function saveSubmission(data) {
   var subs = getSubmissions();
   subs.push(data);
   setSubmissions(subs);
+  log('info', '本地保存', { name: data.name, totalLocal: subs.length });
 }
 
 function clearAllSubmissions() {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(FAILED_QUEUE_KEY);
+  log('warn', '本地数据已清空');
   renderDataTable();
+}
+
+// ==================== 失败队列（离线后自动重试） ====================
+function getFailedQueue() {
+  try { return JSON.parse(localStorage.getItem(FAILED_QUEUE_KEY)) || []; }
+  catch(e) { return []; }
+}
+function setFailedQueue(queue) {
+  localStorage.setItem(FAILED_QUEUE_KEY, JSON.stringify(queue));
+}
+function addToFailedQueue(submission) {
+  var queue = getFailedQueue();
+  // 去重
+  if (!queue.some(function(q) { return q.name === submission.name; })) {
+    queue.push(submission);
+    setFailedQueue(queue);
+    log('warn', '加入失败队列', { name: submission.name, queueSize: queue.length });
+  }
+}
+function removeFromFailedQueue(name) {
+  var queue = getFailedQueue();
+  var newQueue = queue.filter(function(q) { return q.name !== name; });
+  if (newQueue.length < queue.length) {
+    setFailedQueue(newQueue);
+    log('info', '从失败队列移除', { name: name, remaining: newQueue.length });
+  }
+}
+
+// 自动重试失败队列中的提交（页面加载时 / 管理员登录时调用）
+async function retryFailedQueue() {
+  if (!BM_CONFIG.enabled) return;
+  var queue = getFailedQueue();
+  if (queue.length === 0) return;
+  log('info', '开始重试失败队列', { count: queue.length });
+
+  var remaining = [];
+  for (var i = 0; i < queue.length; i++) {
+    try {
+      var objectId = await cloudSaveWithRetry(queue[i], 2);
+      // 重试成功，同步到本地标记
+      removeFromFailedQueue(queue[i].name);
+      // 更新本地记录的 _cloudSynced 和 _objectId
+      var subs = getSubmissions();
+      for (var j = 0; j < subs.length; j++) {
+        if (subs[j].name === queue[i].name && !subs[j]._cloudSynced) {
+          subs[j]._cloudSynced = true;
+          subs[j]._objectId = objectId;
+          setSubmissions(subs);
+          break;
+        }
+      }
+    } catch(e) {
+      remaining.push(queue[i]);
+      log('error', '重试失败队列条目失败', { name: queue[i].name, error: e.message });
+    }
+  }
+  setFailedQueue(remaining);
+  if (remaining.length === 0) {
+    log('info', '失败队列已清空');
+  } else {
+    log('warn', '失败队列仍有未处理条目', { count: remaining.length });
+  }
 }
 
 // ==================== 动态生成界面 ====================
@@ -578,24 +759,29 @@ async function handleSubmit() {
     // 收集数据
     var data = collectFormData(name);
 
-    // 优先保存到云端
+    // 优先保存到云端（带重试：3次，指数退避 1s/2s/4s）
     var cloudOk = false;
     if (BM_CONFIG.enabled) {
       try {
-        await cloudSave(data);
+        data._objectId = await cloudSaveWithRetry(data, 3);
+        data._cloudSynced = true;
         cloudOk = true;
       } catch(e) {
-        console.error('Cloud save failed:', e);
+        log('error', '提交 ' + name + ' 云端保存失败（已重试3次）', e.message);
+        data._cloudSynced = false;
+        data._objectId = null;
+        // 加入失败队列，待后续自动重试
+        addToFailedQueue(data);
       }
     }
 
-    // 本地始终保存（作为兜底）
+    // 本地始终保存（作为兜底，云端同步状态标记在数据内）
     saveSubmission(data);
 
     if (cloudOk) {
       showToast('✓ 提交成功！感谢 ' + name + ' 的宝贵意见', 'success');
     } else if (BM_CONFIG.enabled) {
-      showToast('⚠ 云端同步失败，数据已本地暂存，管理员将手动同步', 'warn');
+      showToast('⚠ 网络不稳定，数据已安全暂存，稍后自动同步到云端', 'warn');
     } else {
       showToast('✓ 提交成功！感谢 ' + name + ' 的宝贵意见', 'success');
     }
@@ -683,7 +869,7 @@ function renderDataTable() {
   noData.style.display = 'none';
   document.querySelector('.data-table-wrap').style.display = 'block';
 
-  var headerHtml = '<tr><th rowspan="2">序号</th><th rowspan="2">姓名</th><th rowspan="2">联系方式</th><th rowspan="2">机构/单位</th><th rowspan="2">时间</th>';
+  var headerHtml = '<tr><th rowspan="2">序号</th><th rowspan="2">姓名</th><th rowspan="2">云</th><th rowspan="2">联系方式</th><th rowspan="2">机构/单位</th><th rowspan="2">时间</th>';
   projects.forEach(function(p) {
     headerHtml += '<th colspan="7" style="background:#d5e0f0;">项目' + numToChinese(p.id) + '</th>';
   });
@@ -694,7 +880,9 @@ function renderDataTable() {
 
   var bodyHtml = '';
   subs.forEach(function(s, idx) {
-    bodyHtml += '<tr><td>' + (idx + 1) + '</td><td>' + escHtml(s.name) + '</td><td>' + escHtml(s.contact || '-') + '</td><td>' + escHtml(s.org || '-') + '</td><td>' + escHtml(s.time) + '</td>';
+    // 云端同步状态：☁️ = 已同步，💾 = 仅本地
+    var syncIcon = s._cloudSynced ? '<span title="已同步到云端">☁️</span>' : '<span title="仅本地存储" style="color:#e74c3c;">💾</span>';
+    bodyHtml += '<tr><td>' + (idx + 1) + '</td><td>' + escHtml(s.name) + '</td><td style="font-size:14px;">' + syncIcon + '</td><td>' + escHtml(s.contact || '-') + '</td><td>' + escHtml(s.org || '-') + '</td><td>' + escHtml(s.time) + '</td>';
     projects.forEach(function(p) {
       shortDimNames.forEach(function(_, di) {
         var val = (s.scores[p.id] && s.scores[p.id][di]) ? s.scores[p.id][di] : '-';
@@ -724,7 +912,7 @@ function exportCSV() {
   if (subs.length === 0) { showToast('暂无数据可导出', 'warn'); return; }
 
   var csv = '﻿';
-  var headers = ['序号', '姓名', '联系方式', '机构/单位', '时间'];
+  var headers = ['序号', '姓名', '云端同步', '联系方式', '机构/单位', '时间'];
   projects.forEach(function(p) {
     var cn = numToChinese(p.id);
     headers.push('P' + p.id + '-' + cn + '-技术', 'P' + p.id + '-' + cn + '-市场', 'P' + p.id + '-' + cn + '-团队',
@@ -735,7 +923,7 @@ function exportCSV() {
   csv += headers.join(',') + '\n';
 
   subs.forEach(function(s, idx) {
-    var row = [idx + 1, csvCell(s.name), csvCell(s.contact || ''), csvCell(s.org || ''), csvCell(s.time)];
+    var row = [idx + 1, csvCell(s.name), s._cloudSynced ? '已同步' : '仅本地', csvCell(s.contact || ''), csvCell(s.org || ''), csvCell(s.time)];
     projects.forEach(function(p) {
       shortDimNames.forEach(function(_, di) {
         row.push((s.scores[p.id] && s.scores[p.id][di]) ? s.scores[p.id][di] : '');
@@ -843,47 +1031,18 @@ async function syncFromCloud() {
 
   try {
     var cloudData = await cloudList();
-    // 转换为本地格式
-    var submissions = cloudData.map(function(obj) {
-      var s = {
-        name: obj.name || '',
-        contact: obj.contact || '',
-        org: obj.org || '',
-        time: obj.time || '',
-        scores: obj.scores || {},
-        wills: obj.wills || {},
-        comments: obj.comments || {},
-        fav: obj.fav || [],
-        follow: obj.follow || '',
-        followProjects: obj.followProjects || '',
-        suggestion: obj.suggestion || '',
-        tracks: obj.tracks || [],
-        trackOther: obj.trackOther || '',
-        volume: obj.volume || EVENT_VOLUME,
-        _objectId: obj.objectId
-      };
-      return s;
-    });
+    // 使用公共合并函数：云端覆盖 + 保留本地独有的
+    var merged = mergeCloudIntoLocal(cloudData);
 
-    // 合并本地独有数据（云端没有的）
-    var localSubs = getSubmissions();
-    // 用云端数据覆盖本地
-    setSubmissions(submissions);
-    // 追加本地独有的（云端同步失败的）
-    localSubs.forEach(function(ls) {
-      var inCloud = submissions.some(function(cs) { return cs.name === ls.name; });
-      if (!inCloud) {
-        var subs = getSubmissions();
-        subs.push(ls);
-        setSubmissions(subs);
-      }
-    });
+    // 如果离线期间有失败队列，尝试重试
+    await retryFailedQueue();
 
     renderDataTable();
     updateCloudStatus('on');
-    showToast('✓ 已从云端同步 ' + cloudData.length + ' 份反馈', 'success');
+    showToast('✓ 已从云端同步 ' + cloudData.length + ' 份反馈' + (merged.localOnly.length > 0 ? '（保留 ' + merged.localOnly.length + ' 条本地暂存）' : ''), 'success');
   } catch(e) {
     updateCloudStatus('off');
+    log('error', '手动同步云端失败', e.message);
     showToast('云端同步失败: ' + (e.message || '请检查网络和配置'), 'error');
   } finally {
     isSyncing = false;
@@ -972,34 +1131,41 @@ async function verifyAdmin() {
     document.getElementById('dataPanel').classList.add('show');
     updateCloudStatus(BM_CONFIG.enabled ? 'loading' : 'off');
 
-    // 从云端同步最新数据
+    // 从云端同步最新数据（带合并保护，不覆盖本地独有的数据）
     if (BM_CONFIG.enabled) {
       try {
         var cloudData = await cloudList();
-        var submissions = cloudData.map(function(obj) {
-          var s = {
-            name: obj.name || '',
-            contact: obj.contact || '',
-            org: obj.org || '',
-            time: obj.time || '',
-            scores: obj.scores || {},
-            wills: obj.wills || {},
-            comments: obj.comments || {},
-            fav: obj.fav || [],
-            follow: obj.follow || '',
-            followProjects: obj.followProjects || '',
-            suggestion: obj.suggestion || '',
-            tracks: obj.tracks || [],
-            trackOther: obj.trackOther || '',
-            volume: obj.volume || EVENT_VOLUME,
-            _objectId: obj.objectId
-          };
-          return s;
-        });
-        setSubmissions(submissions);
+        var merged = mergeCloudIntoLocal(cloudData);
         updateCloudStatus('on');
+
+        // 如果有本地独有的数据（之前同步失败的），尝试自动上传到云端
+        if (merged.localOnly.length > 0) {
+          log('info', '管理员登录：发现本地独有数据，尝试上传', { count: merged.localOnly.length });
+          showToast('发现 ' + merged.localOnly.length + ' 条本地暂存数据，正在自动同步...', 'warn');
+          for (var i = 0; i < merged.localOnly.length; i++) {
+            var ls = merged.localOnly[i];
+            try {
+              var newId = await cloudSaveWithRetry(ls, 2);
+              // 上传成功，更新本地标记
+              var subs = getSubmissions();
+              for (var j = 0; j < subs.length; j++) {
+                if (subs[j].name === ls.name) {
+                  subs[j]._cloudSynced = true;
+                  subs[j]._objectId = newId;
+                  break;
+                }
+              }
+              setSubmissions(subs);
+              removeFromFailedQueue(ls.name);
+              log('info', '本地数据补传成功', { name: ls.name, objectId: newId });
+            } catch(e2) {
+              log('error', '本地数据补传失败', { name: ls.name, error: e2.message });
+            }
+          }
+          renderDataTable();
+        }
       } catch(e) {
-        console.error('Cloud sync failed on login:', e);
+        log('error', '管理员登录云端同步失败', e.message);
         updateCloudStatus('off');
         showToast('⚠ 云端数据同步失败，显示本地缓存数据', 'warn');
       }
@@ -1026,6 +1192,31 @@ function logoutAdmin() {
 // ==================== 初始化 ====================
 document.getElementById('dataPanel').classList.remove('show');
 document.getElementById('adminBar').classList.remove('show');
+
+// 页面加载时自动重试失败队列（静默，不弹 toast）
+if (BM_CONFIG.enabled) {
+  retryFailedQueue().then(function() {
+    if (getFailedQueue().length === 0) {
+      log('info', '页面加载：失败队列已清空或无待处理项');
+    }
+  }).catch(function(e) {
+    log('error', '页面加载：失败队列重试异常', e.message);
+  });
+}
+
+// ==================== 调试工具（浏览器控制台使用） ====================
+window.__dumpLogs = function(n) { console.log(getLogText(n)); };
+window.__dumpFailedQueue = function() { console.table(getFailedQueue()); };
+window.__dumpSubmissions = function() { console.table(getSubmissions()); };
+window.__testCloudFail = function() {
+  _DEBUG_FORCE_CLOUD_FAIL = !_DEBUG_FORCE_CLOUD_FAIL;
+  console.log('_DEBUG_FORCE_CLOUD_FAIL =', _DEBUG_FORCE_CLOUD_FAIL);
+};
+window.__clearLogs = function() { LOG = []; console.log('Logs cleared'); };
+console.log('%c[国科创演VOL' + EVENT_VOLUME + '] 问卷已就绪 %c| Bmob: ' + (BM_CONFIG.enabled ? '✅' : '❌'),
+  'color:#1a478a;font-weight:bold', '');
+console.log('%c调试命令: __dumpLogs(50) | __dumpFailedQueue() | __dumpSubmissions() | __testCloudFail()',
+  'color:#888;font-size:11px');
 
 // 二维码生成：部署后自动使用当前URL，本地打开时使用GitHub Pages地址
 (function initQR() {
