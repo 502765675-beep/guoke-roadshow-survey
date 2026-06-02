@@ -21,13 +21,19 @@
   .rating-note { font-size: 12px; color: #888; margin-bottom: 20px; }
   .project-section { border: 1px solid #e0e0e0; border-radius: 6px; padding: 18px; margin-bottom: 22px; background: #fafafa; }
   .project-section h3 { color: #2b579a; font-size: 15px; margin: 0 0 8px 0; }
-  .project-section .desc { font-size: 12px; color: #666; margin-bottom: 14px; line-height: 1.6; }
+  .project-section .desc { font-size: 12px; color: #666; margin-bottom: 14px; line-height: 1.6; position: relative; }
+  .project-section .desc-toggle { color: #1a478a; font-size: 11px; cursor: pointer; margin-left: 4px; white-space: nowrap; }
+  .project-section .desc-toggle:hover { text-decoration: underline; }
   .score-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
   .score-table th { background: #1a478a; color: #fff; padding: 8px 6px; font-size: 12px; font-weight: normal; text-align: center; }
   .score-table th:first-child { text-align: left; padding-left: 10px; }
   .score-table td { padding: 7px 6px; text-align: center; border-bottom: 1px solid #e0e0e0; font-size: 12px; }
   .score-table td:first-child { text-align: left; padding-left: 10px; font-size: 12px; }
   .score-table input[type="radio"] { cursor: pointer; }
+  .score-table tr.dim-row { cursor: pointer; transition: background 0.15s; }
+  .score-table tr.dim-row:hover { background: #e8f0fa; }
+  .score-table tr.dim-row.has-score { background: #f0f5e8; }
+  .score-table tr.dim-row.has-score:hover { background: #e0ecd0; }
   .invest-will { font-size: 13px; margin: 8px 0; }
   .invest-will label { margin-right: 20px; cursor: pointer; }
   .comment-area { margin-top: 8px; }
@@ -65,7 +71,7 @@
   .data-panel-header.open .toggle-icon { transform: rotate(180deg); }
   .data-panel-body { display: none; padding: 18px; background: #f8f9fb; max-height: 500px; overflow: auto; }
   .data-panel-body.open { display: block; }
-  .data-actions { margin-bottom: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .data-actions { margin-bottom: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .data-actions button { padding: 7px 16px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background: #fff; }
   .data-actions button:hover { background: #f0f0f0; }
   .data-actions .btn-export { background: #27ae60; color: #fff; border-color: #27ae60; }
@@ -100,10 +106,15 @@
   .modal-box .login-error { color: #e74c3c; font-size: 12px; margin-bottom: 10px; display: none; }
 
   /* Admin toolbar */
-  .admin-bar { display: none; background: #1a478a; color: #fff; padding: 8px 18px; border-radius: 6px; margin-bottom: 15px; justify-content: space-between; align-items: center; font-size: 13px; }
+  .admin-bar { display: none; background: #1a478a; color: #fff; padding: 8px 18px; border-radius: 6px; margin-bottom: 15px; justify-content: space-between; align-items: center; font-size: 13px; flex-wrap: wrap; gap: 6px; }
   .admin-bar.show { display: flex; }
   .admin-bar .btn-logout { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 5px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; }
   .admin-bar .btn-logout:hover { background: rgba(255,255,255,0.35); }
+  .admin-bar .cloud-status { font-size: 11px; padding: 3px 10px; border-radius: 10px; margin-left: 8px; }
+  .admin-bar .cloud-status.on { background: #27ae60; }
+  .admin-bar .cloud-status.off { background: #e74c3c; }
+  .admin-bar .cloud-status.loading { background: #f39c12; }
+  .admin-bar .cloud-retry { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-left: 4px; }
 
   /* Admin entry link in footer */
   .admin-entry { text-align: center; margin-top: 10px; }
@@ -120,6 +131,10 @@
   .data-panel { display: none; }
   .data-panel.show { display: block; }
 
+  /* Loading spinner */
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
   /* Mobile responsive */
   @media (max-width: 600px) {
     body { padding: 12px; }
@@ -127,13 +142,14 @@
     .section-title { font-size: 14px; }
     .project-section { padding: 12px; }
     .project-section h3 { font-size: 13px; }
-    .score-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .score-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; position: relative; }
+    .score-table-wrap::after { content: '← 左右滑动 →'; display: block; text-align: center; font-size: 10px; color: #999; padding: 4px 0; }
     .score-table { min-width: 420px; }
     .score-table th, .score-table td { padding: 5px 3px; font-size: 10px; }
     .score-table th:first-child, .score-table td:first-child { font-size: 10px; padding-left: 4px; }
     .invest-will { font-size: 12px; }
     .invest-will label { display: block; margin-bottom: 4px; }
-    .comment-area textarea { font-size: 16px; } /* prevent iOS zoom */
+    .comment-area textarea { font-size: 16px; }
     .overall-section textarea { font-size: 16px; }
     .basic-info input[type="text"] { font-size: 16px; width: 160px; }
     .btn-group button { padding: 12px 24px; font-size: 15px; width: 100%; margin: 6px 0; }
@@ -143,6 +159,7 @@
     .data-actions { flex-direction: column; }
     .data-actions button { width: 100%; }
     .modal-box { width: 90%; padding: 20px; }
+    .admin-bar { flex-direction: column; align-items: flex-start; }
   }
 </style>
 </head>
@@ -187,7 +204,7 @@
 
 <!-- 二、项目评价 -->
 <div class="section-title">二、项目评价</div>
-<p class="rating-note">评分说明：1分=不认可 &nbsp; 2分=较不认可 &nbsp; 3分=一般 &nbsp; 4分=较认可 &nbsp; 5分=非常认可</p>
+<p class="rating-note">评分说明：1分=不认可 &nbsp; 2分=较不认可 &nbsp; 3分=一般 &nbsp; 4分=较认可 &nbsp; 5分=非常认可 &nbsp; | &nbsp; 点击行可高亮标记</p>
 
 <div id="projectsContainer"></div>
 
@@ -235,7 +252,9 @@
 
 <!-- Admin toolbar -->
 <div class="admin-bar no-print" id="adminBar">
-  <span>🔒 管理员模式 — 数据仅您可见</span>
+  <span>🔒 管理员模式</span>
+  <span class="cloud-status" id="cloudStatus">检测中...</span>
+  <button class="cloud-retry" id="cloudRetryBtn" onclick="syncFromCloud()" style="display:none;">🔄 同步云端</button>
   <button class="btn-logout" onclick="logoutAdmin()">退出管理</button>
 </div>
 
@@ -249,6 +268,7 @@
     <div class="data-actions">
       <button class="btn-export" onclick="exportCSV()">📥 导出CSV</button>
       <button onclick="copyTable()">📋 复制表格</button>
+      <button id="btnSyncCloud" style="background:#3498db;color:#fff;border-color:#3498db;" onclick="syncFromCloud()">☁️ 刷新云端数据</button>
       <button class="btn-danger" onclick="clearAllData()">🗑 清空数据</button>
       <button style="background:#1a478a;color:#fff;border-color:#1a478a;" onclick="saveAsNewVolume()">📄 另存为新一期问卷</button>
     </div>
@@ -259,15 +279,15 @@
         <tbody></tbody>
       </table>
     </div>
-    <div class="no-data" id="noData">暂无提交数据，请填写问卷后点击"提交反馈"</div>
+    <div class="no-data" id="noData">暂无提交数据</div>
   </div>
 </div>
 
 <script>
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  ★ 项目配置 — 换项目只需修改下面这个数组 ★                ║
-// ║  每个项目: { id: 序号, name: '项目名称', desc: '简介' }     ║
-// ║  支持任意数量项目，界面会自动适配                            ║
+// ║  每个项目: { id: 序号, name: '项目名称', desc: '简介' }    ║
+// ║  支持任意数量项目，界面会自动适配                           ║
 // ╚══════════════════════════════════════════════════════════════╝
 const EVENT_VOLUME = 1; // 第几期活动（影响标题、文件名、存储key）
 
@@ -288,6 +308,21 @@ const projects = [
     desc: '专注第三代半导体SiC衬底材料，核心产品为导电型SiC衬底片，国内少数具备8英寸MOS级衬底产业化能力的企业，应用于新能源汽车、AI数据中心、光伏储能、5G通信等场景，已获Pre-A及A+轮融资。' }
 ];
 
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  ★ Bmob 云存储配置 ★                                        ║
+// ║  1. 注册: https://www.bmobapp.com → 控制台 → 创建应用        ║
+// ║  2. 应用面板 → 设置 → 应用密钥                                ║
+// ║  3. 复制 Application ID / REST API Key 填到下方               ║
+// ║  4. 应用面板 → 数据 → 创建表 → 名称填 Submission              ║
+// ║  5. 留空配置则回退到纯本地存储模式                             ║
+// ╚══════════════════════════════════════════════════════════════╝
+const BM_CONFIG = {
+  appId: '',               // ← Application ID
+  restApiKey: '',          // ← REST API Key
+  serverUrl: 'https://api.bmobcloud.com',  // 固定不变
+};
+BM_CONFIG.enabled = !!(BM_CONFIG.appId && BM_CONFIG.restApiKey);
+
 // ==================== 内置工具函数（无需修改） ====================
 const CHINESE_NUMS = '零一二三四五六七八九十';
 function numToChinese(n) {
@@ -307,63 +342,191 @@ const dimensions = ['技术先进性（技术壁垒与创新程度）', '市场�
 
 const shortDimNames = ['技术', '市场', '团队', '模式', '竞争', '投资'];
 
+// ==================== Bmob REST API ====================
+const BM_CLASS = 'Submission';
+
+async function bmApi(path, options) {
+  options = options || {};
+  var method = options.method || 'GET';
+  var body = options.body;
+  var params = options.params;
+  var url = BM_CONFIG.serverUrl + '/1' + path;
+  if (params) {
+    var qs = Object.keys(params).map(function(k) {
+      return encodeURIComponent(k) + '=' + encodeURIComponent(typeof params[k] === 'string' ? params[k] : JSON.stringify(params[k]));
+    }).join('&');
+    url += '?' + qs;
+  }
+  var headers = {
+    'X-Bmob-Application-Id': BM_CONFIG.appId,
+    'X-Bmob-REST-API-Key': BM_CONFIG.restApiKey,
+    'Content-Type': 'application/json'
+  };
+  var fetchOpts = { method: method, headers: headers };
+  if (body) fetchOpts.body = JSON.stringify(body);
+
+  var res = await fetch(url, fetchOpts);
+  var data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || 'API error: ' + res.status);
+  }
+  return data;
+}
+
+// 保存一份提交到云端
+async function cloudSave(submission) {
+  var result = await bmApi('/classes/' + BM_CLASS, { method: 'POST', body: submission });
+  return result.objectId;
+}
+
+// 获取云端所有提交
+async function cloudList() {
+  var result = await bmApi('/classes/' + BM_CLASS, {
+    params: { order: '-createdAt', limit: 1000 }
+  });
+  return result.results || [];
+}
+
+// 删除云端单条记录
+async function cloudDelete(objectId) {
+  await bmApi('/classes/' + BM_CLASS + '/' + objectId, { method: 'DELETE' });
+}
+
+// 删除云端全部记录
+async function cloudDeleteAll() {
+  var subs = await cloudList();
+  // 批量删除，每次最多 50 条
+  var batchSize = 50;
+  for (var i = 0; i < subs.length; i += batchSize) {
+    var batch = subs.slice(i, i + batchSize);
+    var requests = batch.map(function(s) {
+      return { method: 'DELETE', path: '/1/classes/' + BM_CLASS + '/' + s.objectId };
+    });
+    await bmApi('/batch', { method: 'POST', body: { requests: requests } });
+  }
+  return subs.length;
+}
+
+// 云端查重：检查姓名是否已提交
+async function cloudCheckDuplicate(name) {
+  var result = await bmApi('/classes/' + BM_CLASS, {
+    params: { where: JSON.stringify({ name: name }), limit: 1 }
+  });
+  return result.results && result.results.length > 0;
+}
+
+// ==================== 本地存储（兜底 + 缓存） ====================
+const STORAGE_KEY = 'guoke_roadshow_v' + EVENT_VOLUME + '_submissions';
+
+function getSubmissions() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function setSubmissions(subs) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(subs));
+}
+
+function saveSubmission(data) {
+  var subs = getSubmissions();
+  subs.push(data);
+  setSubmissions(subs);
+}
+
+function clearAllSubmissions() {
+  localStorage.removeItem(STORAGE_KEY);
+  renderDataTable();
+}
+
 // ==================== 动态生成界面 ====================
 function buildUI() {
-  // 标题中的期数
   document.querySelector('.header h1').innerHTML =
-    `国科创演 VOL ${EVENT_VOLUME} —— 投资人意见反馈表`;
+    '国科创演 VOL ' + EVENT_VOLUME + ' —— 投资人意见反馈表';
 
-  // 项目评分卡片
-  const container = document.getElementById('projectsContainer');
-  container.innerHTML = projects.map(p => {
-    const cn = numToChinese(p.id);
-    return `
-    <div class="project-section">
-      <h3>项目${cn}：${p.name}</h3>
-      <p class="desc"><b>【项目简介】</b>${p.desc}</p>
-      <div class="score-table-wrap">
-      <table class="score-table">
-        <tr><th width="40%">评价维度</th><th>1分</th><th>2分</th><th>3分</th><th>4分</th><th>5分</th></tr>
-        ${dimensions.map((dim, di) => `
-          <tr>
-            <td>${dim}</td>
-            ${[1,2,3,4,5].map(s => `<td><input type="radio" name="p${p.id}_d${di}" value="${s}"></td>`).join('')}
-          </tr>
-        `).join('')}
-      </table>
-      </div>
-      <div class="invest-will">
-        投资意愿：
-        <label><input type="radio" name="p${p.id}_will" value="重点关注，希望对接"> 重点关注，希望对接</label>
-        <label><input type="radio" name="p${p.id}_will" value="保持关注，持续观察"> 保持关注，持续观察</label>
-        <label><input type="radio" name="p${p.id}_will" value="暂不关注"> 暂不关注</label>
-      </div>
-      <div class="comment-area">
-        <label>具体意见/建议：</label>
-        <textarea id="p${p.id}_comment" placeholder="可选填..."></textarea>
-      </div>
-    </div>`;
+  var container = document.getElementById('projectsContainer');
+  container.innerHTML = projects.map(function(p) {
+    var cn = numToChinese(p.id);
+    return '<div class="project-section">' +
+      '<h3>项目' + cn + '：' + escHtml(p.name) + '</h3>' +
+      '<p class="desc"><b>【项目简介】</b>' + escHtml(p.desc) + '</p>' +
+      '<div class="score-table-wrap">' +
+      '<table class="score-table">' +
+        '<tr><th width="40%">评价维度</th><th>1分</th><th>2分</th><th>3分</th><th>4分</th><th>5分</th></tr>' +
+        dimensions.map(function(dim, di) {
+          return '<tr class="dim-row" data-pid="' + p.id + '" data-dim="' + di + '" onclick="clickRow(this)">' +
+            '<td>' + dim + '</td>' +
+            [1,2,3,4,5].map(function(s) {
+              return '<td onclick="event.stopPropagation()"><input type="radio" name="p' + p.id + '_d' + di + '" value="' + s + '" onchange="markRow(this)"></td>';
+            }).join('') +
+          '</tr>';
+        }).join('') +
+      '</table>' +
+      '</div>' +
+      '<div class="invest-will">' +
+        '投资意愿：' +
+        '<label><input type="radio" name="p' + p.id + '_will" value="重点关注，希望对接"> 重点关注，希望对接</label>' +
+        '<label><input type="radio" name="p' + p.id + '_will" value="保持关注，持续观察"> 保持关注，持续观察</label>' +
+        '<label><input type="radio" name="p' + p.id + '_will" value="暂不关注"> 暂不关注</label>' +
+      '</div>' +
+      '<div class="comment-area">' +
+        '<label>具体意见/建议：</label>' +
+        '<textarea id="p' + p.id + '_comment" placeholder="可选填..."></textarea>' +
+      '</div>' +
+    '</div>';
   }).join('');
 
   // 最看好项目 多选列表
-  const favContainer = document.getElementById('favCheckboxes');
-  favContainer.innerHTML = projects.map(p => {
-    const cn = numToChinese(p.id);
-    const shortName = p.name.length > 12 ? p.name.substring(0, 12) + '...' : p.name;
-    return `<label><input type="checkbox" name="fav" value="${p.id}"> 项目${cn}：${shortName}</label><br>`;
+  var favContainer = document.getElementById('favCheckboxes');
+  favContainer.innerHTML = projects.map(function(p) {
+    var cn = numToChinese(p.id);
+    var shortName = p.name.length > 12 ? p.name.substring(0, 12) + '...' : p.name;
+    return '<label><input type="checkbox" name="fav" value="' + p.id + '"> 项目' + cn + '：' + shortName + '</label><br>';
   }).join('');
 }
 buildUI();
 
+// ==================== 评分交互增强 ====================
+// 点击行高亮
+function clickRow(tr) {
+  var radios = tr.querySelectorAll('input[type="radio"]');
+  if (radios.length === 0) return;
+  // 找当前是否有已选中的
+  var selected = tr.querySelector('input[type="radio"]:checked');
+  if (selected) {
+    // 取消选中
+    selected.checked = false;
+    tr.classList.remove('has-score');
+  } else {
+    // 默认选 4 分（较认可）
+    var radio4 = tr.querySelector('input[value="4"]');
+    if (radio4) {
+      radio4.checked = true;
+      tr.classList.add('has-score');
+    }
+  }
+}
+
+function markRow(radio) {
+  var tr = radio.closest('tr.dim-row');
+  if (tr) {
+    tr.classList.add('has-score');
+  }
+}
+
 // ==================== 表单提交 ====================
 document.getElementById('surveyForm').addEventListener('submit', function(e) {
   e.preventDefault();
+  handleSubmit();
+});
 
-  const name = document.getElementById('investorName').value.trim();
+async function handleSubmit() {
+  var submitBtn = document.getElementById('submitBtn');
+  var name = document.getElementById('investorName').value.trim();
   if (!name) {
     showToast('请填写姓名后再提交', 'error');
     document.getElementById('investorName').classList.add('field-error');
-    setTimeout(() => document.getElementById('investorName').classList.remove('field-error'), 2000);
+    setTimeout(function() { document.getElementById('investorName').classList.remove('field-error'); }, 2000);
+    document.getElementById('investorName').focus();
     return;
   }
 
@@ -382,71 +545,104 @@ document.getElementById('surveyForm').addEventListener('submit', function(e) {
     return;
   }
 
-  // 每人限填一次
-  if (getSubmissions().some(function(s) { return s.name === name; })) {
-    showToast('「' + name + '」已提交过反馈，每人仅限填写一次', 'error');
-    return;
-  }
+  // 防重复点击
+  if (submitBtn.disabled) return;
+  submitBtn.disabled = true;
+  submitBtn.textContent = '提交中...';
 
-  const data = collectFormData(name);
-  saveSubmission(data);
-  showToast('✓ 提交成功！感谢 ' + name + ' 的宝贵意见', 'success');
-  if (isAdmin) renderDataTable();
-  resetForm(true);
-});
+  try {
+    // 云端查重
+    if (BM_CONFIG.enabled) {
+      try {
+        var cloudDup = await cloudCheckDuplicate(name);
+        if (cloudDup) {
+          showToast('「' + name + '」已提交过反馈，每人仅限填写一次', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = '✓ 提交反馈';
+          return;
+        }
+      } catch(e) {
+        // 云端查重失败，继续检查本地
+        console.warn('Cloud dup check failed:', e);
+      }
+    }
+
+    // 本地查重
+    if (getSubmissions().some(function(s) { return s.name === name; })) {
+      showToast('「' + name + '」已提交过反馈，每人仅限填写一次', 'error');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '✓ 提交反馈';
+      return;
+    }
+
+    // 收集数据
+    var data = collectFormData(name);
+
+    // 优先保存到云端
+    var cloudOk = false;
+    if (BM_CONFIG.enabled) {
+      try {
+        await cloudSave(data);
+        cloudOk = true;
+      } catch(e) {
+        console.error('Cloud save failed:', e);
+      }
+    }
+
+    // 本地始终保存（作为兜底）
+    saveSubmission(data);
+
+    if (cloudOk) {
+      showToast('✓ 提交成功！感谢 ' + name + ' 的宝贵意见', 'success');
+    } else if (BM_CONFIG.enabled) {
+      showToast('⚠ 云端同步失败，数据已本地暂存，管理员将手动同步', 'warn');
+    } else {
+      showToast('✓ 提交成功！感谢 ' + name + ' 的宝贵意见', 'success');
+    }
+
+    if (isAdmin) renderDataTable();
+    resetForm(true);
+  } catch(e) {
+    showToast('提交失败：' + (e.message || '未知错误'), 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '✓ 提交反馈';
+  }
+}
 
 // ==================== 收集表单数据 ====================
 function collectFormData(name) {
-  const data = {
+  var data = {
     name: name,
     contact: document.getElementById('investorContact').value.trim(),
     org: document.getElementById('investorOrg').value.trim(),
     time: new Date().toLocaleString('zh-CN', { hour12: false }),
     scores: {}, wills: {}, comments: {},
-    fav: [], follow: '', followProjects: '', suggestion: '', tracks: [], trackOther: ''
+    fav: [], follow: '', followProjects: '', suggestion: '', tracks: [], trackOther: '',
+    volume: EVENT_VOLUME
   };
 
-  projects.forEach(p => {
+  projects.forEach(function(p) {
     data.scores[p.id] = {};
-    dimensions.forEach((_, di) => {
-      const radio = document.querySelector(`input[name="p${p.id}_d${di}"]:checked`);
+    dimensions.forEach(function(_, di) {
+      var radio = document.querySelector('input[name="p' + p.id + '_d' + di + '"]:checked');
       data.scores[p.id][di] = radio ? radio.value : '';
     });
-    const willRadio = document.querySelector(`input[name="p${p.id}_will"]:checked`);
+    var willRadio = document.querySelector('input[name="p' + p.id + '_will"]:checked');
     data.wills[p.id] = willRadio ? willRadio.value : '';
-    const commentEl = document.getElementById(`p${p.id}_comment`);
+    var commentEl = document.getElementById('p' + p.id + '_comment');
     data.comments[p.id] = commentEl ? commentEl.value.trim() : '';
   });
 
-  document.querySelectorAll('input[name="fav"]:checked').forEach(cb => data.fav.push(cb.value));
-  const followRadio = document.querySelector('input[name="follow"]:checked');
+  document.querySelectorAll('input[name="fav"]:checked').forEach(function(cb) { data.fav.push(cb.value); });
+  var followRadio = document.querySelector('input[name="follow"]:checked');
   data.follow = followRadio ? followRadio.value : '';
   data.followProjects = document.getElementById('followProjects').value.trim();
   data.suggestion = document.getElementById('suggestion').value.trim();
-  document.querySelectorAll('input[name="track"]:checked').forEach(cb => data.tracks.push(cb.value));
+  document.querySelectorAll('input[name="track"]:checked').forEach(function(cb) { data.tracks.push(cb.value); });
   data.trackOther = document.getElementById('trackOther').value.trim();
 
   return data;
-}
-
-// ==================== 本地存储 ====================
-const STORAGE_KEY = `guoke_roadshow_v${EVENT_VOLUME}_submissions`;
-
-function getSubmissions() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch(e) { return []; }
-}
-
-function saveSubmission(data) {
-  const subs = getSubmissions();
-  subs.push(data);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(subs));
-}
-
-function clearAllSubmissions() {
-  localStorage.removeItem(STORAGE_KEY);
-  renderDataTable();
-  showToast('全部数据已清空', 'warn');
 }
 
 // ==================== 重置表单 ====================
@@ -456,9 +652,10 @@ function resetForm(keepName) {
     document.getElementById('investorContact').value = '';
     document.getElementById('investorOrg').value = '';
   }
-  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
-  document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-  document.querySelectorAll('textarea').forEach(ta => ta.value = '');
+  document.querySelectorAll('input[type="radio"]').forEach(function(r) { r.checked = false; });
+  document.querySelectorAll('input[type="checkbox"]').forEach(function(cb) { cb.checked = false; });
+  document.querySelectorAll('textarea').forEach(function(ta) { ta.value = ''; });
+  document.querySelectorAll('.dim-row').forEach(function(tr) { tr.classList.remove('has-score'); });
   document.getElementById('investorName').classList.remove('field-error');
   document.getElementById('investorContact').classList.remove('field-error');
   document.getElementById('investorOrg').classList.remove('field-error');
@@ -467,14 +664,14 @@ function resetForm(keepName) {
 
 // ==================== 渲染数据表 ====================
 function renderDataTable() {
-  const subs = getSubmissions();
+  var subs = getSubmissions();
   document.getElementById('totalCount').textContent = subs.length;
   document.getElementById('submissionStats').textContent =
-    subs.length > 0 ? `最后提交：${subs[subs.length-1].time}` : '';
+    subs.length > 0 ? '最后提交：' + subs[subs.length-1].time : '';
 
-  const thead = document.querySelector('#dataTable thead');
-  const tbody = document.querySelector('#dataTable tbody');
-  const noData = document.getElementById('noData');
+  var thead = document.querySelector('#dataTable thead');
+  var tbody = document.querySelector('#dataTable tbody');
+  var noData = document.getElementById('noData');
 
   if (subs.length === 0) {
     thead.innerHTML = '';  tbody.innerHTML = '';
@@ -486,32 +683,32 @@ function renderDataTable() {
   noData.style.display = 'none';
   document.querySelector('.data-table-wrap').style.display = 'block';
 
-  let headerHtml = '<tr><th rowspan="2">序号</th><th rowspan="2">姓名</th><th rowspan="2">联系方式</th><th rowspan="2">机构/单位</th><th rowspan="2">时间</th>';
-  projects.forEach(p => {
-    headerHtml += `<th colspan="7" style="background:#d5e0f0;">项目${numToChinese(p.id)}</th>`;
+  var headerHtml = '<tr><th rowspan="2">序号</th><th rowspan="2">姓名</th><th rowspan="2">联系方式</th><th rowspan="2">机构/单位</th><th rowspan="2">时间</th>';
+  projects.forEach(function(p) {
+    headerHtml += '<th colspan="7" style="background:#d5e0f0;">项目' + numToChinese(p.id) + '</th>';
   });
   headerHtml += '<th rowspan="2">最看好</th><th rowspan="2">对接意向</th><th rowspan="2">对接项目</th><th rowspan="2">活动建议</th><th rowspan="2">关注赛道</th></tr><tr>';
-  projects.forEach(() => { headerHtml += '<th>技术</th><th>市场</th><th>团队</th><th>模式</th><th>竞争</th><th>投资</th><th>意愿</th>'; });
+  projects.forEach(function() { headerHtml += '<th>技术</th><th>市场</th><th>团队</th><th>模式</th><th>竞争</th><th>投资</th><th>意愿</th>'; });
   headerHtml += '</tr>';
   thead.innerHTML = headerHtml;
 
-  let bodyHtml = '';
-  subs.forEach((s, idx) => {
-    bodyHtml += `<tr><td>${idx + 1}</td><td>${escHtml(s.name)}</td><td>${escHtml(s.contact || '-')}</td><td>${escHtml(s.org || '-')}</td><td>${escHtml(s.time)}</td>`;
-    projects.forEach(p => {
-      shortDimNames.forEach((_, di) => {
-        const val = (s.scores[p.id] && s.scores[p.id][di]) ? s.scores[p.id][di] : '-';
-        bodyHtml += `<td>${val}</td>`;
+  var bodyHtml = '';
+  subs.forEach(function(s, idx) {
+    bodyHtml += '<tr><td>' + (idx + 1) + '</td><td>' + escHtml(s.name) + '</td><td>' + escHtml(s.contact || '-') + '</td><td>' + escHtml(s.org || '-') + '</td><td>' + escHtml(s.time) + '</td>';
+    projects.forEach(function(p) {
+      shortDimNames.forEach(function(_, di) {
+        var val = (s.scores[p.id] && s.scores[p.id][di]) ? s.scores[p.id][di] : '-';
+        bodyHtml += '<td>' + val + '</td>';
       });
-      bodyHtml += `<td style="font-size:10px;">${escHtml(s.wills[p.id] || '-')}</td>`;
+      bodyHtml += '<td style="font-size:10px;">' + escHtml(s.wills[p.id] || '-') + '</td>';
     });
-    bodyHtml += `
-      <td>${escHtml((s.fav || []).join(', '))}</td>
-      <td>${escHtml(s.follow || '-')}</td>
-      <td>${escHtml(s.followProjects || '-')}</td>
-      <td class="comment-cell">${escHtml(s.suggestion || '-')}</td>
-      <td>${escHtml((s.tracks || []).join(', ') + (s.trackOther ? '; ' + s.trackOther : ''))}</td>
-    </tr>`;
+    bodyHtml +=
+      '<td>' + escHtml((s.fav || []).join(', ')) + '</td>' +
+      '<td>' + escHtml(s.follow || '-') + '</td>' +
+      '<td>' + escHtml(s.followProjects || '-') + '</td>' +
+      '<td class="comment-cell">' + escHtml(s.suggestion || '-') + '</td>' +
+      '<td>' + escHtml((s.tracks || []).join(', ') + (s.trackOther ? '; ' + s.trackOther : '')) + '</td>' +
+    '</tr>';
   });
   tbody.innerHTML = bodyHtml;
 }
@@ -523,24 +720,24 @@ function escHtml(str) {
 
 // ==================== 导出CSV ====================
 function exportCSV() {
-  const subs = getSubmissions();
+  var subs = getSubmissions();
   if (subs.length === 0) { showToast('暂无数据可导出', 'warn'); return; }
 
-  let csv = '﻿';
-  let headers = ['序号', '姓名', '联系方式', '机构/单位', '时间'];
-  projects.forEach(p => {
-    const cn = numToChinese(p.id);
-    headers.push(`P${p.id}-${cn}-技术`, `P${p.id}-${cn}-市场`, `P${p.id}-${cn}-团队`,
-      `P${p.id}-${cn}-模式`, `P${p.id}-${cn}-竞争`, `P${p.id}-${cn}-投资`, `P${p.id}-${cn}-意愿`,
-      `P${p.id}-${cn}-意见`);
+  var csv = '﻿';
+  var headers = ['序号', '姓名', '联系方式', '机构/单位', '时间'];
+  projects.forEach(function(p) {
+    var cn = numToChinese(p.id);
+    headers.push('P' + p.id + '-' + cn + '-技术', 'P' + p.id + '-' + cn + '-市场', 'P' + p.id + '-' + cn + '-团队',
+      'P' + p.id + '-' + cn + '-模式', 'P' + p.id + '-' + cn + '-竞争', 'P' + p.id + '-' + cn + '-投资', 'P' + p.id + '-' + cn + '-意愿',
+      'P' + p.id + '-' + cn + '-意见');
   });
   headers.push('最看好项目', '对接意向', '对接项目编号', '活动建议', '关注赛道');
   csv += headers.join(',') + '\n';
 
-  subs.forEach((s, idx) => {
-    let row = [idx + 1, csvCell(s.name), csvCell(s.contact || ''), csvCell(s.org || ''), csvCell(s.time)];
-    projects.forEach(p => {
-      shortDimNames.forEach((_, di) => {
+  subs.forEach(function(s, idx) {
+    var row = [idx + 1, csvCell(s.name), csvCell(s.contact || ''), csvCell(s.org || ''), csvCell(s.time)];
+    projects.forEach(function(p) {
+      shortDimNames.forEach(function(_, di) {
         row.push((s.scores[p.id] && s.scores[p.id][di]) ? s.scores[p.id][di] : '');
       });
       row.push(csvCell(s.wills[p.id] || ''));
@@ -554,114 +751,206 @@ function exportCSV() {
     csv += row.join(',') + '\n';
   });
 
-  downloadFile(`国科创演VOL${EVENT_VOLUME}_投资人反馈汇总.csv`, csv);
+  downloadFile('国科创演VOL' + EVENT_VOLUME + '_投资人反馈汇总.csv', csv);
   showToast('CSV文件已下载，可用Excel直接打开', 'success');
 }
 
 function csvCell(val) {
   if (val === null || val === undefined) return '';
-  const s = String(val);
+  var s = String(val);
   if (s.includes(',') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g, '""') + '"';
   return s;
 }
 
 function downloadFile(filename, content) {
-  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  var blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
   a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
 
 // ==================== 复制表格 ====================
 function copyTable() {
-  const subs = getSubmissions();
+  var subs = getSubmissions();
   if (subs.length === 0) { showToast('暂无数据可复制', 'warn'); return; }
 
-  let text = '';
-  subs.forEach((s, idx) => {
-    text += `[${idx+1}] ${s.name} | ${s.contact || '-'} | ${s.org || '-'} | ${s.time}\n`;
-    projects.forEach(p => {
-      const cn = numToChinese(p.id);
-      const scores = shortDimNames.map((dn, di) => {
+  var text = '';
+  subs.forEach(function(s, idx) {
+    text += '[' + (idx+1) + '] ' + s.name + ' | ' + (s.contact || '-') + ' | ' + (s.org || '-') + ' | ' + s.time + '\n';
+    projects.forEach(function(p) {
+      var cn = numToChinese(p.id);
+      var scores = shortDimNames.map(function(dn, di) {
         return dn + ':' + ((s.scores[p.id] && s.scores[p.id][di]) ? s.scores[p.id][di] : '-');
       }).join(' ');
-      text += `  项目${cn}：${scores} | 意愿：${s.wills[p.id] || '-'}`;
-      if (s.comments[p.id]) text += ` | 意见：${s.comments[p.id]}`;
+      text += '  项目' + cn + '：' + scores + ' | 意愿：' + (s.wills[p.id] || '-');
+      if (s.comments[p.id]) text += ' | 意见：' + s.comments[p.id];
       text += '\n';
     });
-    text += `  最看好：${(s.fav||[]).join(',') || '-'} | 对接：${s.follow||'-'} ${s.followProjects||''}\n`;
-    text += `  建议：${s.suggestion||'-'} | 赛道：${(s.tracks||[]).join(',')}${s.trackOther?';'+s.trackOther:''}\n\n`;
+    text += '  最看好：' + ((s.fav||[]).join(',') || '-') + ' | 对接：' + (s.follow||'-') + ' ' + (s.followProjects||'') + '\n';
+    text += '  建议：' + (s.suggestion||'-') + ' | 赛道：' + ((s.tracks||[]).join(',')) + (s.trackOther?';'+s.trackOther:'') + '\n\n';
   });
 
-  navigator.clipboard.writeText(text).then(() => {
+  navigator.clipboard.writeText(text).then(function() {
     showToast('表格内容已复制到剪贴板', 'success');
-  }).catch(() => {
+  }).catch(function() {
     showToast('复制失败，请手动选择复制', 'error');
   });
 }
 
 // ==================== 数据面板切换 ====================
 function toggleDataPanel() {
-  const body = document.getElementById('dataPanelBody');
-  const header = document.getElementById('dataPanelHeader');
+  var body = document.getElementById('dataPanelBody');
+  var header = document.getElementById('dataPanelHeader');
   body.classList.toggle('open');
   header.classList.toggle('open');
 }
 
 // ==================== 清空数据 ====================
-function clearAllData() {
-  const subs = getSubmissions();
+async function clearAllData() {
+  var subs = getSubmissions();
   if (subs.length === 0) { showToast('没有数据需要清空', 'warn'); return; }
-  if (confirm(`当前共有 ${subs.length} 份反馈数据，确定要全部清空吗？\n\n建议先导出CSV备份。此操作不可恢复！`)) {
-    clearAllSubmissions();
+  if (!confirm('当前共有 ' + subs.length + ' 份反馈数据，确定要全部清空吗？\n\n建议先导出CSV备份。此操作不可恢复！')) return;
+
+  // 清空云端
+  if (BM_CONFIG.enabled) {
+    try {
+      var count = await cloudDeleteAll();
+      showToast('云端 ' + count + ' 条记录已删除', 'success');
+    } catch(e) {
+      showToast('云端清空失败: ' + (e.message || '网络错误'), 'error');
+      return;
+    }
+  }
+
+  // 清空本地
+  localStorage.removeItem(STORAGE_KEY);
+  renderDataTable();
+  if (!BM_CONFIG.enabled) showToast('全部数据已清空', 'warn');
+}
+
+// ==================== 云端同步 ====================
+var isSyncing = false;
+
+async function syncFromCloud() {
+  if (!BM_CONFIG.enabled) {
+    showToast('请先配置 Bmob 云存储（修改代码顶部 BM_CONFIG）', 'warn');
+    return;
+  }
+  if (isSyncing) return;
+  isSyncing = true;
+  updateCloudStatus('loading');
+
+  try {
+    var cloudData = await cloudList();
+    // 转换为本地格式
+    var submissions = cloudData.map(function(obj) {
+      var s = {
+        name: obj.name || '',
+        contact: obj.contact || '',
+        org: obj.org || '',
+        time: obj.time || '',
+        scores: obj.scores || {},
+        wills: obj.wills || {},
+        comments: obj.comments || {},
+        fav: obj.fav || [],
+        follow: obj.follow || '',
+        followProjects: obj.followProjects || '',
+        suggestion: obj.suggestion || '',
+        tracks: obj.tracks || [],
+        trackOther: obj.trackOther || '',
+        volume: obj.volume || EVENT_VOLUME,
+        _objectId: obj.objectId
+      };
+      return s;
+    });
+
+    // 合并本地独有数据（云端没有的）
+    var localSubs = getSubmissions();
+    // 用云端数据覆盖本地
+    setSubmissions(submissions);
+    // 追加本地独有的（云端同步失败的）
+    localSubs.forEach(function(ls) {
+      var inCloud = submissions.some(function(cs) { return cs.name === ls.name; });
+      if (!inCloud) {
+        var subs = getSubmissions();
+        subs.push(ls);
+        setSubmissions(subs);
+      }
+    });
+
+    renderDataTable();
+    updateCloudStatus('on');
+    showToast('✓ 已从云端同步 ' + cloudData.length + ' 份反馈', 'success');
+  } catch(e) {
+    updateCloudStatus('off');
+    showToast('云端同步失败: ' + (e.message || '请检查网络和配置'), 'error');
+  } finally {
+    isSyncing = false;
+  }
+}
+
+function updateCloudStatus(state) {
+  var badge = document.getElementById('cloudStatus');
+  var retryBtn = document.getElementById('cloudRetryBtn');
+  if (!BM_CONFIG.enabled) {
+    badge.textContent = '⚪ 未配置云存储';
+    badge.className = 'cloud-status off';
+    retryBtn.style.display = 'none';
+  } else if (state === 'on') {
+    badge.textContent = '🟢 云存储已连接';
+    badge.className = 'cloud-status on';
+    retryBtn.style.display = 'none';
+  } else if (state === 'off') {
+    badge.textContent = '🔴 云端未连接';
+    badge.className = 'cloud-status off';
+    retryBtn.style.display = 'inline-block';
+  } else if (state === 'loading') {
+    badge.innerHTML = '<span class="spinner"></span> 同步中...';
+    badge.className = 'cloud-status loading';
+    retryBtn.style.display = 'none';
   }
 }
 
 // ==================== Toast ====================
 function showToast(msg, type) {
-  const t = document.getElementById('toast');
+  var t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast ' + type + ' show';
   clearTimeout(t._timer);
-  t._timer = setTimeout(() => { t.className = 'toast'; }, 2500);
+  t._timer = setTimeout(function() { t.className = 'toast'; }, 3000);
 }
 
 // ==================== 另存为新一期 ====================
 function saveAsNewVolume() {
-  const newVol = parseInt(prompt(`当前是第 ${EVENT_VOLUME} 期。请输入新一期编号（如 2、3、4...）：`, EVENT_VOLUME + 1));
+  var newVol = parseInt(prompt('当前是第 ' + EVENT_VOLUME + ' 期。请输入新一期编号（如 2、3、4...）：', EVENT_VOLUME + 1));
   if (!newVol || newVol <= 0 || isNaN(newVol)) return;
   if (newVol === EVENT_VOLUME) { showToast('新期数不能与当前相同', 'warn'); return; }
 
-  // 读取当前HTML源码，替换期数
-  let html = document.documentElement.outerHTML;
-  // 替换EVENT_VOLUME变量
-  html = html.replace(/const EVENT_VOLUME = \d+/, `const EVENT_VOLUME = ${newVol}`);
-  // 替换标题中的期数（可能出现多次）
-  html = html.replace(/国科创演 VOL \d+/g, `国科创演 VOL ${newVol}`);
-  // 替换页面title
-  html = html.replace(/<title>国科创演 VOL \d+/, `<title>国科创演 VOL ${newVol}`);
+  var html = document.documentElement.outerHTML;
+  html = html.replace(/const EVENT_VOLUME = \d+/, 'const EVENT_VOLUME = ' + newVol);
+  html = html.replace(/国科创演 VOL \d+/g, '国科创演 VOL ' + newVol);
+  html = html.replace(/<title>国科创演 VOL \d+/, '<title>国科创演 VOL ' + newVol);
 
-  // 添加重置提示注释到projects数组上方
   html = html.replace(
-    /(\/\/ ║  ★ 项目配置 — 换项目只需修改下面这个数组)/,
-    `$1\n// ║  ★ 请替换为第${newVol}期的项目列表`
+    /(\/\/ ║  ★ 项目配置 )/,
+    '$1\n// ║  ★ 请替换为第' + newVol + '期的项目列表'
   );
 
-  const filename = `国科创演VOL${newVol}_投资人意见反馈表.html`;
-  const blob = new Blob(['<!DOCTYPE html>\n' + html.replace(/^<!DOCTYPE html>\s*/i, '')], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  var filename = '国科创演VOL' + newVol + '_投资人意见反馈表.html';
+  var blob = new Blob(['<!DOCTYPE html>\n' + html.replace(/^<!DOCTYPE html>\s*/i, '')], { type: 'text/html;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
   a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 
-  showToast(`第 ${newVol} 期问卷已生成：${filename}，请修改项目列表后使用`, 'success');
+  showToast('第 ' + newVol + ' 期问卷已生成：' + filename + '，请修改项目列表后使用', 'success');
 }
 
 // ==================== 管理员认证 ====================
-const ADMIN_PASSWORD = 'guoke2026'; // 可自行修改密码
+const ADMIN_PASSWORD = 'guoke2026';
 
-let isAdmin = false;
+var isAdmin = false;
 
 function openAdminModal() {
   document.getElementById('adminModal').classList.add('show');
@@ -674,17 +963,52 @@ function closeAdminModal() {
   document.getElementById('adminModal').classList.remove('show');
 }
 
-function verifyAdmin() {
-  const pwd = document.getElementById('adminPassword').value;
+async function verifyAdmin() {
+  var pwd = document.getElementById('adminPassword').value;
   if (pwd === ADMIN_PASSWORD) {
     isAdmin = true;
     document.getElementById('adminModal').classList.remove('show');
     document.getElementById('adminBar').classList.add('show');
     document.getElementById('dataPanel').classList.add('show');
+    updateCloudStatus(BM_CONFIG.enabled ? 'loading' : 'off');
+
+    // 从云端同步最新数据
+    if (BM_CONFIG.enabled) {
+      try {
+        var cloudData = await cloudList();
+        var submissions = cloudData.map(function(obj) {
+          var s = {
+            name: obj.name || '',
+            contact: obj.contact || '',
+            org: obj.org || '',
+            time: obj.time || '',
+            scores: obj.scores || {},
+            wills: obj.wills || {},
+            comments: obj.comments || {},
+            fav: obj.fav || [],
+            follow: obj.follow || '',
+            followProjects: obj.followProjects || '',
+            suggestion: obj.suggestion || '',
+            tracks: obj.tracks || [],
+            trackOther: obj.trackOther || '',
+            volume: obj.volume || EVENT_VOLUME,
+            _objectId: obj.objectId
+          };
+          return s;
+        });
+        setSubmissions(submissions);
+        updateCloudStatus('on');
+      } catch(e) {
+        console.error('Cloud sync failed on login:', e);
+        updateCloudStatus('off');
+        showToast('⚠ 云端数据同步失败，显示本地缓存数据', 'warn');
+      }
+    }
+
     renderDataTable();
     document.getElementById('dataPanelBody').classList.add('open');
     document.getElementById('dataPanelHeader').classList.add('open');
-    showToast('已进入管理员模式', 'success');
+    showToast('已进入管理员模式' + (BM_CONFIG.enabled ? '，数据已从云端同步' : ''), 'success');
   } else {
     document.getElementById('loginError').style.display = 'block';
     document.getElementById('adminPassword').value = '';
@@ -703,7 +1027,7 @@ function logoutAdmin() {
 document.getElementById('dataPanel').classList.remove('show');
 document.getElementById('adminBar').classList.remove('show');
 
-// 二维码生成：使用QR Server API，纯图片无需外部JS库
+// 二维码生成：使用 QR Server API，纯图片无需外部JS库
 (function initQR() {
   var url = window.location.href;
   var qrDiv = document.getElementById('qrCode');
