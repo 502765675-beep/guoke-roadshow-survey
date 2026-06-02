@@ -1027,15 +1027,15 @@ function logoutAdmin() {
 document.getElementById('dataPanel').classList.remove('show');
 document.getElementById('adminBar').classList.remove('show');
 
-// 二维码生成：使用 QR Server API，纯图片无需外部JS库
+// 二维码生成：部署后自动使用当前URL，本地打开时使用GitHub Pages地址
 (function initQR() {
   var url = window.location.href;
+  var deployedUrl = 'https://502765675-beep.github.io/guoke-roadshow-survey';
+  if (url.startsWith('file://')) {
+    url = deployedUrl;  // 本地预览时用线上地址
+  }
   var qrDiv = document.getElementById('qrCode');
   var hint = document.getElementById('qrHint');
-  if (url.startsWith('file://')) {
-    hint.textContent = '部署到 GitHub Pages 后将自动显示二维码';
-    return;
-  }
   var qrImg = document.createElement('img');
   qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(url);
   qrImg.width = 180;
